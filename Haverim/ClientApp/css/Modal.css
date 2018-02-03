@@ -1,0 +1,80 @@
+.modal-background {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.418);
+  cursor: pointer;
+  z-index: 2;
+}
+.modal-container {
+  position: fixed;
+
+  height: 70%;
+  top: 15%;
+  left: 4%;
+  right: 4%;
+  background-color: white;
+  border-radius: 5px;
+  font-family: Arial, Helvetica, sans-serif;
+  scroll-behavior: smooth;
+  overflow: auto;
+  overflow-x: hidden;
+  z-index: 3;
+}
+.modal-user-container {
+  display: grid;
+  grid-template-rows: 85px;
+  grid-template-columns: 95px auto;
+}
+.modal-user-info-container {
+  font-size: 20px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+.modal-displayname {
+  display: inline;
+  color: #4f4f4f;
+}
+.modal-label {
+  display: inline;
+  color: #b1b1b1;
+  margin-left: 8px;
+}
+.modal-profile-image {
+  width: 80px;
+  height: 80px;
+  margin-left: 5px;
+  margin-top: 5px;
+  border-radius: 100%;
+}
+.modal-body {
+  width: 90%;
+  margin-left: 20px;
+  font-size: 25px;
+}
+.modal-split {
+  border: 0;
+  border-bottom: 1px rgba(128, 128, 128, 0.178) solid;
+  width: 100%;
+}
+.modal-social-icon {
+  width: 25px;
+  height: 25px;
+  float: right;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s, width 0.2s, height 0.2s, padding-left 0.2s,
+    padding-bottom 0.2s;
+  padding-bottom: 15px;
+  padding-right: 20px;
+  z-index: -1;
+}
+.modal-social-icon:hover {
+  opacity: 1;
+  width: 30px;
+  height: 30px;
+  padding-left: 5px;
+  padding-bottom: 10px;
+}

@@ -1,0 +1,32 @@
+.main-page {
+  background-color: rgba(0, 0, 0, 0.01);
+  height: 100%;
+  width: 100%;
+  position: absolute;
+  overflow: scroll;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+.main-page-content {
+  display: grid;
+  grid-template-columns: 300px auto 300px;
+}
+.main-page-input-posts {
+  grid-column: 2;
+  margin-top: 30px;
+}
+.main-page-user-profile {
+  margin-top: 42.5px;
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+.main-page-friends-list {
+  margin-left: auto;
+  margin-right: auto;
+  margin-top: 42.5px;
+}
+.full {
+  width: 96vw;
+}

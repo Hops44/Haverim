@@ -1,0 +1,39 @@
+@import url("https://fonts.googleapis.com/css?family=Quicksand");
+@import url("https://fonts.googleapis.com/css?family=Roboto");
+
+* {
+  font-family: "Roboto", sans-serif;
+}
+
+body {
+  margin: 0;
+}
+#centerrr {
+  left: 50%;
+  top: 0;
+  width: 1px;
+  height: 100%;
+  display: block;
+  position: fixed;
+  background-color: red;
+  z-index: 999;
+}
+
+.noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+.blurred {
+  --blur-amount: 3px;
+
+  -webkit-filter: blur(var(--blur-amount));
+  -moz-filter: blur(var(--blur-amount));
+  -o-filter: blur(var(--blur-amount));
+  -ms-filter: blur(var(--blur-amount));
+  filter: blur(var(--blur-amount));
+}

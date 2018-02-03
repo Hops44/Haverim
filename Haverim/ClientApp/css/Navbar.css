@@ -1,0 +1,48 @@
+.nav-bar {
+  background-color: #f2994a;
+  width: 100%;
+  display: grid;
+  grid-template-columns: [not]50px [inb]50px [hdr]auto[propic] 50px;
+  overflow: hidden;
+}
+
+.notification-img {
+  width: 40px;
+  height: 40px;
+  grid-column: not;
+  margin-top: 4px;
+  cursor: pointer;
+}
+.inbox-img {
+  width: 40px;
+  height: 40px;
+  margin-top: 4px;
+  grid-column: inb;
+  cursor: pointer;
+}
+.haverim-header-container {
+  text-align: center;
+}
+.haverim-header {
+  font-family: "Quicksand", sans-serif;
+  color: white;
+  font-size: 38px;
+  text-align: center;
+  grid-column: [hdr];
+  cursor: pointer;
+  margin: 0;
+  display: inline-block;
+  margin-right: 50px;
+}
+.profile-img {
+  width: 40px;
+  height: 40px;
+  border-radius: 100%;
+  margin-top: 4px;
+  grid-column: propic;
+  cursor: pointer;
+
+  -webkit-box-shadow: 0 0 0px 2px #fff;
+  -moz-box-shadow: 0 0 0px 2px #fff;
+  box-shadow: 0 0 0px 2px #fff;
+}

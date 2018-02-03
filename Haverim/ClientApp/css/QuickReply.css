@@ -1,0 +1,8 @@
+.quick-reply-field-container {
+  position: fixed;
+  margin-top: -90px;
+  top: 50%;
+  left: 5%;
+  right: 5%;
+  z-index: 3;
+}

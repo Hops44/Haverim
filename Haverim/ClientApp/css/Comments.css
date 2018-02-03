@@ -1,0 +1,75 @@
+/* ---------------------------------------------------------------------- Comment ---------------------------------------------------------------- */
+.comment-container {
+  font-family: Arial, Helvetica, sans-serif;
+  padding: 10px;
+  padding-bottom: 0;
+  padding-top: 0;
+  width: 97%;
+  background-color: white;
+  margin: auto;
+  border: 1px solid rgba(196, 196, 196, 0.384);
+}
+.comment-profile-pic {
+  width: 70px;
+  height: 70px;
+  margin-right: 10px;
+  margin-bottom: 5px;
+  border-radius: 100%;
+  cursor: pointer;
+  float: left;
+  z-index: 2;
+}
+.comment-username {
+  display: inline-block;
+  color: gray;
+  margin-left: 5px;
+  cursor: pointer;
+  margin-top: 5px;
+}
+.comment-displayname {
+  margin-left: 0;
+  color: #4f4f4f;
+  display: -webkit-inline-box;
+  cursor: pointer;
+}
+.comment-body {
+  margin: 0;
+  overflow: hidden;
+  cursor: default;
+  width: auto;
+}
+.comment-split {
+  border: 0;
+  border-bottom: 0px solid rgba(218, 218, 218, 0.541);
+}
+.comment-upvote {
+  width: 25px;
+  height: 25px;
+  margin: 0;
+  float: right;
+  cursor: pointer;
+  margin-right: 10px;
+  opacity: 0.6;
+  margin-top: -20px;
+  transition: opacity 0.2s, width 0.2s, height 0.2s, margin-right 0.2s,
+    margin-top 0.2s;
+  margin-right: 0;
+}
+.comment-upvote:hover {
+  opacity: 1;
+  width: 30px;
+  height: 30px;
+  margin-top: -25px;
+}
+/* --------------------------------------------- CommentsList  -------------------------------------------------------------------- */
+.comments-list-list {
+  list-style: none;
+  margin: 0;
+  background-color: rgb(255, 255, 255);
+  padding-top: 15px;
+  padding-bottom: 5px;
+  padding-left: 0;
+}
+.comments-list-item {
+  margin-top: 0px;
+}
