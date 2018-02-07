@@ -28,6 +28,11 @@ namespace Haverim
 
             var connection = @"Server=(localdb)\mssqllocaldb;Database=HaverimProject;Trusted_Connection=True;ConnectRetryCount=0";
             services.AddDbContext<HaverimContext>(options => options.UseSqlServer(connection));
+#if DEBUG
+            // If in debug mode create new mock database for tests
+            connection = @"Server=(localdb)\mssqllocaldb;Database=HaverimProjectMock;Trusted_Connection=True;ConnectRetryCount=0";
+            services.AddDbContext<HaverimContext>(options => options.UseSqlServer(connection));
+#endif
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

@@ -11,28 +11,9 @@ namespace Haverim.Tests
     [TestClass]
     public class UsersControllerTests
     {
-        private void RemoveAllUsers(DbContext db)
-        {
-            db.Database.ExecuteSqlCommand("delete from Users");
-        }
         private UsersController ControllerFactoy(HaverimContext db)
         {
            return new UsersController(db);
-        }
-
-
-        [TestMethod]
-        public void TestMockUsers()
-        {
-            using (var db = new HaverimContext(Global.ContextOptions))
-            {
-                int UsersCount = db.Users.CountAsync().Result;
-                MockDatabase.MockUsers mock = new MockDatabase.MockUsers(db);
-                RemoveAllUsers(db);
-                Assert.AreEqual(db.Users.CountAsync().Result, 0);
-                mock.RevertToCopy();
-                Assert.AreEqual(db.Users.CountAsync().Result, UsersCount);
-            }
         }
 
         [TestMethod]
@@ -40,8 +21,6 @@ namespace Haverim.Tests
         {
             using (var db = new HaverimContext(Global.ContextOptions))
             {
-                MockDatabase.MockUsers mock = new MockDatabase.MockUsers(db);
-                RemoveAllUsers(db);
                 db.Users.Add(new User
                 {
                     Username = "Taken"
@@ -51,9 +30,6 @@ namespace Haverim.Tests
                 UsersController Controller = ControllerFactoy(db);
                 Assert.IsTrue(Controller.IsUsernameTaken("Taken"));         // Username is taken -> the method will return true
                 Assert.IsFalse(Controller.IsUsernameTaken("NotTaken"));     // Username is not taken -> the method will return false
-
-
-                mock.RevertToCopy();
             }
         }
 
@@ -62,8 +38,6 @@ namespace Haverim.Tests
         {
             using (var db = new HaverimContext(Global.ContextOptions))
             {
-                MockDatabase.MockUsers mock = new MockDatabase.MockUsers(db);
-                RemoveAllUsers(db);
                 UsersController controller = ControllerFactoy(db);
                 string RegisterResult = controller.RegisterUser(new Controllers.Helpers.ApiClasses.RegisterUser
                 {
@@ -82,7 +56,12 @@ namespace Haverim.Tests
                 Assert.AreEqual(RegisterResult, "success");
                 Assert.IsNotNull(User);
                 Assert.AreEqual(User.BirthDate, new DateTime(2000, 5, 29));
+
+                Assert.AreEqual(User.PostFeed.Count, 0);
                 Assert.AreEqual(User.ActivityFeed.Count, 0);
+                Assert.AreEqual(User.Following.Count, 0);
+                Assert.AreEqual(User.Followers.Count, 0);
+
                 Assert.AreEqual((DateTime.Now - User.JoinDate).Days, 0);
 
                 RegisterResult = controller.RegisterUser(new Controllers.Helpers.ApiClasses.RegisterUser
@@ -110,11 +89,6 @@ namespace Haverim.Tests
                     ProfilePic = "FCA8DCC2-1B1D-4CC3-82BE-B06B9444328D"
                 });
                 Assert.AreEqual(RegisterResult, "error:3"); // Email in use
-
-
-
-
-                mock.RevertToCopy();
             }
         }
     }

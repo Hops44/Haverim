@@ -20,5 +20,12 @@ namespace Haverim.Controllers.Helpers
             public bool IsMale;
             public string ProfilePic;
         }
+
+        public class CreatePost
+        {
+            public string PublisherUsername;
+            public string Body;
+            public List<string> Tags;
+        }
     }
 }

@@ -22,11 +22,17 @@ namespace Haverim.Models
         public bool IsMale { get; set; }
         public string Country { get; set; }
 
+        public List<Activity> ActivityFeed { get; set; }
+
+        public List<Notification> Notifications { get; set; }
+
         [NotMapped]
         public List<string> PostFeed
         {
             get
             {
+                if (String.IsNullOrWhiteSpace(_postFeed))
+                    return new List<string>();
                 return JsonConvert.DeserializeObject<List<string>>(_postFeed);
             }
             set
@@ -34,38 +40,41 @@ namespace Haverim.Models
                 _postFeed = JsonConvert.SerializeObject(value);
             }
         }
-
         public string _postFeed { get; set; }
 
-        [NotMapped]
-        public List<string> ActivityFeed
-        {
-            get
-            {
-                return JsonConvert.DeserializeObject<List<string>>(_activityFeed);
-            }
-            set
-            {
-                _activityFeed = JsonConvert.SerializeObject(value);
-            }
-        }
-
-        public string _activityFeed { get; set; }
 
         [NotMapped]
         public List<string> Followers
         {
             get
             {
+                if (String.IsNullOrWhiteSpace(_followers))
+                    return new List<string>();
                 return JsonConvert.DeserializeObject<List<string>>(_followers);
             }
             set
             {
                 _followers = JsonConvert.SerializeObject(value);
             }
-        }
-        
+        }       
         public string _followers { get; set; }
+
+
+        [NotMapped]
+        public List<string> Following
+        {
+            get
+            {
+                if (String.IsNullOrWhiteSpace(_following))
+                    return new List<string>();
+                return JsonConvert.DeserializeObject<List<string>>(_following);
+            }
+            set
+            {
+                _following = JsonConvert.SerializeObject(value);
+            }
+        }
+        public string _following { get; set; }
 
     }
 }

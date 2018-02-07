@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -14,11 +15,22 @@ namespace Haverim.Models
         public string Body { get; set; }
         public List<Comment> Comments { get; set; }
 
-        public ICollection<IdClass> UpvotedUsers { get; set; } 
+        [NotMapped]
+        public List<string> UpvotedUsers
+        {
+            get
+            {
+                if (String.IsNullOrWhiteSpace(_upvoteUsers))
+                    return new List<string>();
+                return JsonConvert.DeserializeObject<List<string>>(_upvoteUsers);
+            }
+            set
+            {
+                _upvoteUsers = JsonConvert.SerializeObject(value);
+            }
+        }
+
+        public string _upvoteUsers { get; set; }
     }
-    public class IdClass
-    {
-        [Key, DatabaseGenerated(DatabaseGeneratedOption.None)]
-        public Guid Id { get; set; }
-    }
+
 }

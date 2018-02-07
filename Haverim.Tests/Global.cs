@@ -20,7 +20,7 @@ namespace Haverim.Tests
                     return HiddenOptions;
                 }
                 var HiddenOptionsBuilder = new DbContextOptionsBuilder<HaverimContext>();
-                var connection = @"Server=(localdb)\mssqllocaldb;Database=HaverimProject;Trusted_Connection=True;ConnectRetryCount=0";
+                var connection = @"Server=(localdb)\mssqllocaldb;Database=HaverimProjectMock;Trusted_Connection=True;ConnectRetryCount=0";
                 HiddenOptionsBuilder.EnableSensitiveDataLogging();
                 HiddenOptionsBuilder
                         .UseSqlServer(connection, providerOptions => providerOptions.CommandTimeout(60))
@@ -34,6 +34,7 @@ namespace Haverim.Tests
                 ContextOptions = value;
             }
         }
+
 
     }
 }

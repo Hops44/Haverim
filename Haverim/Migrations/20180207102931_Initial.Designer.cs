@@ -11,8 +11,8 @@ using System;
 namespace Haverim.Migrations
 {
     [DbContext(typeof(HaverimContext))]
-    [Migration("20180203110406_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20180207102931_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -20,6 +20,24 @@ namespace Haverim.Migrations
             modelBuilder
                 .HasAnnotation("ProductVersion", "2.0.1-rtm-125")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+
+            modelBuilder.Entity("Haverim.Models.Activity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
+
+                    b.Property<Guid>("PostId");
+
+                    b.Property<int>("Type");
+
+                    b.Property<string>("Username");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Username");
+
+                    b.ToTable("Activity");
+                });
 
             modelBuilder.Entity("Haverim.Models.Comment", b =>
                 {
@@ -33,6 +51,8 @@ namespace Haverim.Migrations
 
                     b.Property<string>("PublisherId");
 
+                    b.Property<string>("_upvoteUsers");
+
                     b.HasKey("Id");
 
                     b.HasIndex("PostId");
@@ -40,17 +60,24 @@ namespace Haverim.Migrations
                     b.ToTable("Comment");
                 });
 
-            modelBuilder.Entity("Haverim.Models.IdClass", b =>
+            modelBuilder.Entity("Haverim.Models.Notification", b =>
                 {
-                    b.Property<Guid>("Id");
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd();
 
-                    b.Property<Guid?>("PostId");
+                    b.Property<Guid>("PostId");
+
+                    b.Property<DateTime>("PublishDate");
+
+                    b.Property<int>("Type");
+
+                    b.Property<string>("Username");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PostId");
+                    b.HasIndex("Username");
 
-                    b.ToTable("IdClass");
+                    b.ToTable("Notification");
                 });
 
             modelBuilder.Entity("Haverim.Models.Post", b =>
@@ -63,6 +90,8 @@ namespace Haverim.Migrations
 
                     b.Property<string>("PublisherId");
 
+                    b.Property<string>("_upvoteUsers");
+
                     b.HasKey("Id");
 
                     b.ToTable("Posts");
@@ -73,8 +102,6 @@ namespace Haverim.Migrations
                     b.Property<string>("Username");
 
                     b.Property<DateTime>("BirthDate");
-
-                    b.Property<Guid?>("CommentId");
 
                     b.Property<string>("Country");
 
@@ -90,17 +117,22 @@ namespace Haverim.Migrations
 
                     b.Property<string>("ProfilePic");
 
-                    b.Property<string>("_activityFeed");
-
                     b.Property<string>("_followers");
+
+                    b.Property<string>("_following");
 
                     b.Property<string>("_postFeed");
 
                     b.HasKey("Username");
 
-                    b.HasIndex("CommentId");
-
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("Haverim.Models.Activity", b =>
+                {
+                    b.HasOne("Haverim.Models.User")
+                        .WithMany("ActivityFeed")
+                        .HasForeignKey("Username");
                 });
 
             modelBuilder.Entity("Haverim.Models.Comment", b =>
@@ -110,18 +142,11 @@ namespace Haverim.Migrations
                         .HasForeignKey("PostId");
                 });
 
-            modelBuilder.Entity("Haverim.Models.IdClass", b =>
+            modelBuilder.Entity("Haverim.Models.Notification", b =>
                 {
-                    b.HasOne("Haverim.Models.Post")
-                        .WithMany("UpvotedUsers")
-                        .HasForeignKey("PostId");
-                });
-
-            modelBuilder.Entity("Haverim.Models.User", b =>
-                {
-                    b.HasOne("Haverim.Models.Comment")
-                        .WithMany("UpvotedUsers")
-                        .HasForeignKey("CommentId");
+                    b.HasOne("Haverim.Models.User")
+                        .WithMany("Notifications")
+                        .HasForeignKey("Username");
                 });
 #pragma warning restore 612, 618
         }
