@@ -24,7 +24,7 @@ namespace Haverim.Tests.ControllersTests
         /// </summary>
         /// 
         [TestMethod]
-        public void CreatePost()
+        public void CreatePostTest()
         {
             using (var db = new HaverimContext(Global.ContextOptions))
             {

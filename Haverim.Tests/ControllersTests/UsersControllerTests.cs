@@ -17,7 +17,7 @@ namespace Haverim.Tests
         }
 
         [TestMethod]
-        public void IsUsernameTaken()
+        public void IsUsernameTakenTest()
         {
             using (var db = new HaverimContext(Global.ContextOptions))
             {
