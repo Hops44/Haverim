@@ -28,6 +28,8 @@ namespace Haverim.Tests.ControllersTests
         {
             using (var db = new HaverimContext(Global.ContextOptions))
             {
+                Global.ResetDatabase(db);
+
                 var PController = new PostsController(db);
                 var UController = new UsersController(db);
 
@@ -96,17 +98,17 @@ namespace Haverim.Tests.ControllersTests
 
                 Assert.AreEqual(FollowerAccualUser.PostFeed.Count, 1);
 
-                var PostFromFollowerPostFeed = db.Posts.Find(FollowerAccualUser.PostFeed[0]);
+                var PostFromFollowerPostFeed = db.Posts.Find(new Guid(FollowerAccualUser.PostFeed[0]));
                 Assert.IsNotNull(PostFromFollowerPostFeed);
                 Assert.AreEqual(PostFromFollowerPostFeed.Body, "Testing CreatePost Method!");
 
                 var notification = FollowerAccualUser.Notifications[0];
                 Assert.AreEqual(notification.Type, NotificationType.Tag);
-                Assert.AreEqual(notification.PostId, PostId);
+                Assert.AreEqual(notification.PostId, new Guid(PostId));
 
                 PublisherUser = db.Users.Find("Test User");
                 Assert.AreEqual(PublisherUser.ActivityFeed.Count, 1);
-                var PostFromPublisherActivityFeed = db.Posts.Find(PublisherUser.ActivityFeed[0]);
+                var PostFromPublisherActivityFeed = db.Posts.Find( PublisherUser.ActivityFeed[0].PostId);
                 Assert.IsNotNull(PostFromPublisherActivityFeed);
                 Assert.AreEqual(PostFromPublisherActivityFeed.PublisherId, "Test User");
 

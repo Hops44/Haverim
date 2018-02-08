@@ -38,6 +38,8 @@ namespace Haverim.Tests
         {
             using (var db = new HaverimContext(Global.ContextOptions))
             {
+                Global.ResetDatabase(db);
+
                 UsersController controller = ControllerFactoy(db);
                 string RegisterResult = controller.RegisterUser(new Controllers.Helpers.ApiClasses.RegisterUser
                 {

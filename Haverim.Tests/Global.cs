@@ -35,6 +35,10 @@ namespace Haverim.Tests
             }
         }
 
-
+        public static void ResetDatabase(HaverimContext db)
+        {
+            db.Database.EnsureDeleted();
+            db.Database.EnsureCreated();
+        }
     }
 }
