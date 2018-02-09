@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Haverim.Models;
 using Haverim.Controllers.Helpers;
+using Newtonsoft.Json;
 
 namespace Haverim.Controllers
 {
@@ -16,49 +17,54 @@ namespace Haverim.Controllers
     {
         private readonly HaverimContext _context;
 
-        public PostsController(HaverimContext context)
-        {
-            _context = context;
-        }
+        public PostsController(HaverimContext context) => this._context = context;
 
         [HttpPost("[Action]")]
         public string CreatePost([FromBody]ApiClasses.CreatePost Post)
         {
-            if (Post == null || Post.PublisherUsername ==null)
+            if (Post == null || String.IsNullOrWhiteSpace(Post.Token))
                 return "error:5";
-    
-            User Publisher = _context.Users.Find(Post.PublisherUsername);
+
+            string token = Post.Token;
+            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) VerifyResult = Helpers.JWT.VerifyToken(token);
+
+            if (VerifyResult.Status != Helpers.JWT.TokenStatus.Valid)
+                return "error:6";
+
+            User Publisher = this._context.Users.Find(VerifyResult.Payload.Username);
             if (Publisher == null)
                 return "error:0";
             if (Post.Body.Length < 3)
                 return "error:4";
 
-            Guid PostId = Guid.NewGuid();
+            var PostId = Guid.NewGuid();
             DateTime PublishDate = DateTime.Now;
 
             // TODO:[Future Feature] Add tagged topics
-          
+
             // Iterate through tags check if tagged words are users if so, we will add a notification to tagged user
-            foreach (var Tag in Post.Tags)
+            if (Post.Tags != null)
             {
-                User Tagged = _context.Users.Find(Tag);
-                if (Tagged!=null)
+                foreach (string Tag in Post.Tags)
                 {
-
-                    if (Tagged.Notifications == null)
-                        Tagged.Notifications = new List<Notification>();
-
-                    Tagged.Notifications.Add(new Notification
+                    User Tagged = this._context.Users.Find(Tag);
+                    if (Tagged != null)
                     {
-                        PostId = PostId,
-                        PublishDate = PublishDate,
-                        Type = NotificationType.Tag
-                    });
-                    _context.Users.Attach(Tagged);
+
+                        if (Tagged.Notifications == null)
+                            Tagged.Notifications = new List<Notification>();
+
+                        Tagged.Notifications.Add(new Notification
+                        {
+                            PostId = PostId,
+                            PublishDate = PublishDate,
+                            Type = NotificationType.Tag
+                        });
+                        this._context.Users.Attach(Tagged);
+                    }
                 }
             }
-
-            _context.Posts.Add(new Post
+            this._context.Posts.Add(new Post
             {
                 PublisherId = Publisher.Username,
                 Id = PostId,
@@ -73,7 +79,7 @@ namespace Haverim.Controllers
             if (Publisher.ActivityFeed==null)
             {
                 Publisher.ActivityFeed = new List<Activity>();
-                _context.Users.Attach(Publisher);
+                this._context.Users.Attach(Publisher);
             }
 
             // Add the post activity to the publisher
@@ -84,20 +90,67 @@ namespace Haverim.Controllers
             });
 
             // Add the post to the post feed of the publisher's followers
-            foreach (var item in Publisher.Followers)
+            foreach (string item in Publisher.Followers)
             {
-                User Follower = _context.Users.Find(item);
+                User Follower = this._context.Users.Find(item);
                 var PostFeed = Follower.PostFeed;
                 PostFeed.Add(PostId.ToString());
                 Follower.PostFeed = PostFeed;
-                _context.Users.Attach(Follower);
+                this._context.Users.Attach(Follower);
             }
 
 
-            _context.SaveChanges();
-            return "success;" + PostId;
+            this._context.SaveChanges();
+            return "success:" + PostId;
         }
-      //TODO: Write Tests for Post controller
+     
+        [HttpPost("[Action]")]
+        public string GetPostFeed([FromBody] ApiClasses.PostFeedRequest request)
+        {
+            if (String.IsNullOrWhiteSpace(request.Token))
+                return "error:5";
+            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) VerifyResult = Helpers.JWT.VerifyToken(request.Token);
+
+            if (VerifyResult.Status != Helpers.JWT.TokenStatus.Valid)
+                return "error:6";
+            var User = this._context.Users.Find(VerifyResult.Payload.Username);
+            if (User == null)
+                return "error:0";
+
+            List<string> UserPostFeed = User.PostFeed;
+            int FeedCount = UserPostFeed.Count();
+            if (request.index >= FeedCount)
+                return "error:7";
+
+            Post[] RequestedPosts;
+
+            if (request.index + 10 >= FeedCount)
+            {
+                // Loop through the postfeed from index to end
+                RequestedPosts = new Post[UserPostFeed.Count - request.index];
+                int PostsIndexer = 0;
+                for (int i = request.index; i < UserPostFeed.Count; i++)
+                {
+                    Post CurrentPost = this._context.Posts.Find(Guid.Parse(UserPostFeed[i]));
+                    RequestedPosts[PostsIndexer] = CurrentPost;
+                    PostsIndexer++;
+                }
+            }
+            else
+            {
+                // Loop through the postfeed from index to index + 10
+                RequestedPosts = new Post[10];
+                int PostsIndexer = 0;
+                for (int i = request.index; i < request.index + 10; i++)
+                {
+                    Post CurrentPost = this._context.Posts.Find(Guid.Parse(UserPostFeed[i]));
+                    RequestedPosts[PostsIndexer] = CurrentPost;
+                    PostsIndexer++;
+                }
+            }
+            return JsonConvert.SerializeObject(RequestedPosts);
+        }
+
 
     }
 }
