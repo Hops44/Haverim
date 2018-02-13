@@ -5,6 +5,8 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using System.Linq;
 
 namespace Haverim.Tests
 {
@@ -326,7 +328,6 @@ namespace Haverim.Tests
                 Global.ResetDatabase(db);
 
                 var UController = new UsersController(db);
-                var PController = new PostsController(db);
 
                 var RegisterUser = new Controllers.Helpers.ApiClasses.RegisterUser
                 {
@@ -342,30 +343,85 @@ namespace Haverim.Tests
 
                 string UserToken = UController.RegisterUser(RegisterUser).Split(':')[1] ;
 
-                var NotificationsList = new List<Notification>();
+                var FakeNotificationList = new List<Notification>();
                 var User = db.Users.Find("Test User");
 
+                // Add fake notifications
                 for (int i = 0; i < 17; i++)
                 {
-                    NotificationsList.Add(new Notification
+                    FakeNotificationList.Add(new Notification
                     {
                         PostId = Guid.NewGuid(),
                         PublishDate = DateTime.Now,
-                        Type = (NotificationType) new Random().Next(0, 4)
+                        // Type will be i mod 4, this will make the types in the list apear ordered -> 0,1,2,3,0,1,2....
+                        Type = (NotificationType)(i % 4)
                     });
                 }
 
+                User.Notifications = FakeNotificationList;
+                db.SaveChanges();
 
+                string GetNotificationResult = UController.GetNotifications(new Controllers.Helpers.ApiClasses.FeedRequest
+                {
+                    Token = UserToken,
+                    index = 0
+                });
 
+                Assert.AreNotEqual("error", GetNotificationResult.Split(':')[0]);
 
+                List<Notification> NotificationList = JsonConvert.DeserializeObject<Notification[]>(GetNotificationResult).ToList();
+                Assert.AreEqual(10, NotificationList.Count);
 
+                GetNotificationResult = UController.GetNotifications(new Controllers.Helpers.ApiClasses.FeedRequest
+                {
+                    Token = UserToken,
+                    index = 10
+                });
 
+                Assert.AreNotEqual("error", GetNotificationResult.Split(':')[0]);
 
+                List<Notification> TempNotificationList = JsonConvert.DeserializeObject<Notification[]>(GetNotificationResult).ToList();
+                Assert.AreEqual(7, TempNotificationList.Count);
+
+                NotificationList.AddRange(TempNotificationList);
+
+                // This will check if notifications are return in the correct order
+                // it checks if the TypeCounter mod 4 equals the notification type at index i 
+
+                int TypeCounter = 0; 
+                for (int i = 0; i < 17; i++)
+                {
+                    int ModResult = TypeCounter % 4;
+                    Notification CurrentNotification = NotificationList[i];
+                    Assert.AreEqual(ModResult, (int)CurrentNotification.Type);
+                    TypeCounter++;
+                }
+
+                // Error tests
+
+                string NonExistingToken = Controllers.Helpers.JWT.GetToken(new Controllers.Helpers.ApiClasses.Payload { Username = "None" });
+
+                var Request = new Controllers.Helpers.ApiClasses.FeedRequest
+                {
+                    Token = NonExistingToken
+                };
+
+                GetNotificationResult = UController.GetNotifications(Request);
+                Assert.AreEqual("error:0", GetNotificationResult);
+
+                Request.Token = null;
+                GetNotificationResult = UController.GetNotifications(Request);
+                Assert.AreEqual("error:5", GetNotificationResult);
+
+                Request.Token = UserToken + ".";
+                GetNotificationResult = UController.GetNotifications(Request);
+                Assert.AreEqual("error:6", GetNotificationResult);
+
+                Request.Token = UserToken;
+                Request.index = 17;
+                GetNotificationResult = UController.GetNotifications(Request);
+                Assert.AreEqual("error:7", GetNotificationResult);
             }
-
-
         }
-
-
     }
 }

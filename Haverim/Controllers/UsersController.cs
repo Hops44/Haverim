@@ -173,15 +173,29 @@ namespace Haverim.Controllers
             if (request.index >= FeedCount)
                 return "error:7";
 
-            List<Notification> RequestedNotifications;
+            Notification[] RequestedNotifications;
 
             if (request.index + 10 >= FeedCount)
             {
-                RequestedNotifications = UserNotifications.GetRange(request.index, UserNotifications.Count);
+                // Loop through the postfeed from index to end
+                RequestedNotifications = new Notification[FeedCount - request.index];
+                int PostsIndexer = 0;
+                for (int i = request.index; i < FeedCount; i++)
+                {
+                    RequestedNotifications[PostsIndexer] = UserNotifications[i];
+                    PostsIndexer++;
+                }
             }
             else
             {
-                RequestedNotifications = UserNotifications.GetRange(request.index, request.index + 10);
+                // Loop through the postfeed from index to index + 10
+                RequestedNotifications = new Notification[10];
+                int PostsIndexer = 0;
+                for (int i = request.index; i < request.index + 10; i++)
+                {
+                    RequestedNotifications[PostsIndexer] = UserNotifications[i];
+                    PostsIndexer++;
+                }
             }
             return JsonConvert.SerializeObject(RequestedNotifications);
         }
