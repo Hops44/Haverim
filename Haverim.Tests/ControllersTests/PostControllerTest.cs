@@ -127,7 +127,112 @@ namespace Haverim.Tests.ControllersTests
         }
 
         [TestMethod]
-        public void GetPostFeed()
+        public void GetPostFeedTest()
+        {
+            using (var db = new HaverimContext(Global.ContextOptions))
+            {
+                Global.ResetDatabase(db);
+
+                var UController = new UsersController(db);
+                var PController = new PostsController(db);
+
+                var RegisterUserInstance = new ApiClasses.RegisterUser
+                {
+                    Username = "Test User",
+                    DisplayName = "Publisher",
+                    Email = "example@mail.com",
+                    Password = "123456",
+                    BirthDateUnix = 959558400,
+                    Country = "Canada",
+                    IsMale = true,
+                    ProfilePic = "Some Url"
+                };
+                // Publisher
+                string PublisherToken = UController.RegisterUser(RegisterUserInstance).Split(':')[1];
+                // Follower
+                RegisterUserInstance.Username = "Follower User";
+                RegisterUserInstance.Email += "m";
+                string FollowerToken = UController.RegisterUser(RegisterUserInstance).Split(':')[1];
+
+                // Follow the publisher
+                UController.FollowUser(new ApiClasses.FollowRequest
+                {
+                    Token = FollowerToken,
+                    TargetUser = "Test User"
+                });
+
+                // Post 17 Posts with a body of its posted index (i)
+                for (int i = 1; i <= 17; i++)
+                {
+                    string PostResult = PController.CreatePost(new ApiClasses.CreatePost
+                    {
+                        Token = PublisherToken,
+                        Body = $"PostIndex:{i}",
+                        Tags = null
+                    });
+                }
+                var Publisher = db.Users.Find("Test User");
+                var Follower = db.Users.Find("Follower User");
+
+                string PostFeedResult = PController.GetPostFeed(new ApiClasses.FeedRequest
+                {
+                    Token = FollowerToken
+                });
+                Assert.AreNotEqual(PostFeedResult.Split(':')[0], "error");
+
+                List<Post> PostFeed = JsonConvert.DeserializeObject<Post[]>(PostFeedResult).ToList();
+
+                Assert.AreEqual(PostFeed.Count, 10);
+
+                // Get next 7 posts
+                PostFeedResult = PController.GetPostFeed(new ApiClasses.FeedRequest
+                {
+                    Token = FollowerToken,
+                    index = 10
+                });
+                List<Post> TempPostFeed = JsonConvert.DeserializeObject<Post[]>(PostFeedResult).ToList();
+                Assert.AreEqual(TempPostFeed.Count, 7);
+
+                PostFeed.AddRange(TempPostFeed);
+
+                // Check for correct feed 
+                int BodyNumber = 17;
+                for (int i = 0; i < 17; i++)
+                {
+                    string CurrentPostBody = PostFeed[i].Body;
+                    int PostBodyNumber = int.Parse(CurrentPostBody.Split(':')[1]);
+                    Assert.AreEqual(BodyNumber, PostBodyNumber);
+                    BodyNumber--;
+                }
+
+                // Error tests
+                string NonExistingUserToken = Controllers.Helpers.JWT.GetToken(new ApiClasses.Payload
+                {
+                    Username = "None Existing"
+                });
+                var FeedRequest = new ApiClasses.FeedRequest { Token = NonExistingUserToken };
+
+                PostFeedResult = PController.GetPostFeed(FeedRequest);
+                Assert.AreEqual("error:0", PostFeedResult);
+
+                FeedRequest.Token = null;
+                FeedRequest.index = 0;
+                PostFeedResult = PController.GetPostFeed(FeedRequest);
+                Assert.AreEqual("error:5", PostFeedResult);
+
+                FeedRequest.Token = FollowerToken + ".";
+                PostFeedResult = PController.GetPostFeed(FeedRequest);
+                Assert.AreEqual("error:6", PostFeedResult);
+
+                FeedRequest.index = 17;
+                FeedRequest.Token = FollowerToken;
+                PostFeedResult = PController.GetPostFeed(FeedRequest);
+                Assert.AreEqual("error:7", PostFeedResult);
+            }
+        }
+
+        [TestMethod]
+        public void ReplyToPostTest()
         {
             using (var db = new HaverimContext(Global.ContextOptions))
             {
@@ -138,146 +243,103 @@ namespace Haverim.Tests.ControllersTests
 
                 string PublisherToken = UController.RegisterUser(new ApiClasses.RegisterUser
                 {
-                    Username = "Test User",
-                    DisplayName = "Publisher",
+                    Username = "PostPublisher",
+                    DisplayName = "SomeDisplayName",
                     Email = "example@mail.com",
+                    Country = "United States",
+                    BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
+                    IsMale = false,
                     Password = "123456",
-                    BirthDateUnix = 959558400,
-                    Country = "Canada",
-                    IsMale = true,
-                    ProfilePic = "Some Url"
+                    ProfilePic = "Url"
                 });
-                string FollowerToken = UController.RegisterUser(new ApiClasses.RegisterUser
+                string UserToReplyToken = UController.RegisterUser(new ApiClasses.RegisterUser
                 {
-                    Username = "Follower User",
-                    DisplayName = "Follower",
+                    Username = "UserToReply",
+                    DisplayName = "SomeDisplayName",
                     Email = "example2@mail.com",
+                    Country = "United States",
+                    BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
+                    IsMale = false,
                     Password = "123456",
-                    BirthDateUnix = 959558400,
-                    Country = "Canada",
-                    IsMale = true,
-                    ProfilePic = "Some Url"
+                    ProfilePic = "Url"
                 });
 
                 Assert.AreEqual(PublisherToken.Split(':')[0], "success");
-                Assert.AreEqual(FollowerToken.Split(':')[0], "success");
+                Assert.AreEqual(UserToReplyToken.Split(':')[0], "success");
 
                 PublisherToken = PublisherToken.Split(':')[1];
-                FollowerToken = FollowerToken.Split(':')[1];
+                UserToReplyToken = UserToReplyToken.Split(':')[1];
 
-                Assert.IsNotNull(db.Users.Find("Test User"));
-                Assert.IsNotNull(db.Users.Find("Follower User"));
+                User PostPublisher = db.Users.Find("PostPublisher");
+                User ReplyingUser = db.Users.Find("UserToReply");
 
-                // Make the Follower User follow Publisher User
-                //TODO: use controller method to follow
-                User PublisherUser = db.Users.Find("Test User");
-                PublisherUser.Followers = new List<string> { "Follower User" };
-                db.Users.Attach(PublisherUser);
-                PublisherUser = db.Users.Find("Test User");
-                Assert.IsNotNull(PublisherUser);
-                Assert.AreEqual(PublisherUser.Followers.Count, 1);
+                Assert.IsNotNull(PostPublisher);
+                Assert.IsNotNull(ReplyingUser);
 
-
-                var PostedIdsStack = new Stack<string>();
-
-                for (int i = 0; i < 17; i++)
+                string PostId = PController.CreatePost(new ApiClasses.CreatePost
                 {
-                    string Result = PController.CreatePost(new ApiClasses.CreatePost
-                    {
-                        Token = PublisherToken,
-                        Body = "Sample Body",
-                        Tags = null
-                    });
-                    // Result -> "success:PostId"
-                    string PostId = Result.Split(':')[1];
-                    Result = Result.Split(':')[0];
+                    Token = PublisherToken,
+                    Body = "Writing some post body for testing!",
+                }).Split(':')[1];
 
-                    Assert.AreEqual(Result, "success");
-                    Assert.AreEqual(PostId.Length, 36);
+                var Post = db.Posts.Find(Guid.Parse(PostId));
 
-                    PostedIdsStack.Push(PostId);
-                }
-                Assert.AreEqual(db.Users.Find("Test User").ActivityFeed.Count, 17);
-                Assert.AreEqual(db.Users.Find("Follower User").PostFeed.Count, 17);
+                Assert.AreEqual(PostPublisher.ActivityFeed.Count, 1);
 
-                string PostFeedSerialized = PController.GetPostFeed(new ApiClasses.PostFeedRequest
+                string ReplyResult = PController.ReplyToPost(new ApiClasses.CreateReply
                 {
-                    index = 0,
-                    Token = FollowerToken
+                    Token = UserToReplyToken,
+                    PostId = PostId,
+                    Body = "Writing some reply body for testing!"
                 });
 
-                Assert.AreNotEqual(PostFeedSerialized.Split(':')[0], "error");
+                Assert.AreEqual(ReplyResult, "success");
+                Assert.AreEqual(Post.Comments.Count, 1);
+                Assert.AreEqual(Post.Comments[0].PublisherId, ReplyingUser.Username);
+                Assert.AreEqual(PostPublisher.Notifications.Count, 1);
+                Assert.AreEqual(ReplyingUser.ActivityFeed.Count, 1);
+                Assert.AreEqual(ReplyingUser.ActivityFeed[0].Type, ActivityType.Reply);
+                Assert.AreEqual(ReplyingUser.ActivityFeed[0].PostId, Guid.Parse(PostId));
 
-                var PostFeedStack = new Stack<Post>();
-                
-                Post[] PostFeedDeSerialized = JsonConvert.DeserializeObject<Post[]>(PostFeedSerialized);
-                Assert.AreEqual(PostFeedDeSerialized.Length, 10);
-
-                foreach (var post in PostFeedDeSerialized)
+                /// Tests that will return error
+                // Invalid Token
+                var Reply = new ApiClasses.CreateReply
                 {
-                    PostFeedStack.Push(post);
-                }
+                    Token = UserToReplyToken + ".",
+                    Body = "Some Body",
+                    PostId = PostId
+                };
+                ReplyResult = PController.ReplyToPost(Reply);
+                Assert.AreEqual(ReplyResult, "error:6");
 
-                PostFeedSerialized = PController.GetPostFeed(new ApiClasses.PostFeedRequest
+                // Short body
+                Reply.Token = UserToReplyToken;
+                Reply.Body = "12";
+                ReplyResult = PController.ReplyToPost(Reply);
+                Assert.AreEqual(ReplyResult, "error:4");
+
+                // None existing postid
+                Reply.Body = "Some Body";
+                Reply.PostId = Guid.NewGuid().ToString();
+                ReplyResult = PController.ReplyToPost(Reply);
+                Assert.AreEqual(ReplyResult, "error:1");
+
+                // None existing username
+                Reply.PostId = Post.Id.ToString();
+                Reply.Token = Controllers.Helpers.JWT.GetToken(new ApiClasses.Payload
                 {
-                    index = 10,
-                    Token = FollowerToken
+                    Username = "None Existing"
                 });
+                ReplyResult = PController.ReplyToPost(Reply);
+                Assert.AreEqual(ReplyResult, "error:0");
 
-                Assert.AreNotEqual(PostFeedSerialized.Split(':')[0], "error");
-
-                PostFeedDeSerialized = JsonConvert.DeserializeObject<Post[]>(PostFeedSerialized);
-                Assert.AreEqual(PostFeedDeSerialized.Length, 7);
-                foreach (var post in PostFeedDeSerialized)
-                {
-                    PostFeedStack.Push(post);
-                }
-
-                Assert.AreEqual(PostFeedStack.Count, 17);
-                Assert.IsFalse(PostFeedStack.Contains(null));
-
-                var PostFeedClone = new Stack<Post>(new Stack<Post>(PostFeedStack));
-                var PostedIdsClone = new Stack<string>(new Stack<string>(PostedIdsStack));
-
-
-                for (int i = 0; i < PostFeedClone.Count; i++)
-                {
-                    Post CurrentPost = PostFeedClone.Pop();
-                    string CurrentPostId = PostedIdsClone.Pop();
-
-                    Assert.AreEqual(CurrentPost.Id.ToString(), CurrentPostId);
-                }
-
-                PostFeedSerialized = PController.GetPostFeed(new ApiClasses.PostFeedRequest
-                {
-                    index = 12,
-                    Token = FollowerToken
-                });
-                Assert.AreNotEqual(PostFeedSerialized.Split(':')[0], "error");
-                PostFeedDeSerialized = JsonConvert.DeserializeObject<Post[]>(PostFeedSerialized);
-                Assert.AreEqual(PostFeedDeSerialized.Length, 5);
-
-                PostFeedSerialized = PController.GetPostFeed(new ApiClasses.PostFeedRequest
-                {
-                    index = 17,
-                    Token = FollowerToken
-                });
-                Assert.AreEqual(PostFeedSerialized, "error:7");
-
-                PostFeedSerialized = PController.GetPostFeed(new ApiClasses.PostFeedRequest
-                {
-                    Token = FollowerToken+"."
-                });
-                Assert.AreEqual(PostFeedSerialized, "error:6");
-
-                PostFeedSerialized = PController.GetPostFeed(new ApiClasses.PostFeedRequest
-                {
-                    Token = Controllers.Helpers.JWT.GetToken(new ApiClasses.Payload { Username="None Existing User"})
-                });
-                Assert.AreEqual(PostFeedSerialized, "error:0");
+                // Blank body
+                Reply.Body = null;
+                Reply.Token = PublisherToken;
+                ReplyResult = PController.ReplyToPost(Reply);
+                Assert.AreEqual(ReplyResult, "error:5");
 
             }
         }
-
     }
 }

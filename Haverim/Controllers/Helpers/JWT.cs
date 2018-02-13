@@ -11,7 +11,7 @@ namespace Haverim.Controllers.Helpers
 {
     public static class JWT
     {
-        public static string GetToken(object payload)
+        public static string GetToken(ApiClasses.Payload payload)
         {     
             IJwtAlgorithm algorithm = new HMACSHA256Algorithm();
             IJsonSerializer serializer = new JsonNetSerializer();

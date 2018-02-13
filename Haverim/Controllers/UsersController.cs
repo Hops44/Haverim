@@ -26,7 +26,7 @@ namespace Haverim.Controllers
         public string RegisterUser([FromBody]ApiClasses.RegisterUser user)
         {
             if (String.IsNullOrWhiteSpace(user.Username) || String.IsNullOrWhiteSpace(user.Password) || String.IsNullOrWhiteSpace(user.Email) ||
-               (long)user.BirthDateUnix <= -2208988800 || String.IsNullOrWhiteSpace(user.Country) || String.IsNullOrWhiteSpace(user.DisplayName) ||
+               (long)user.BirthDateUnix <= -2208988800 || user.BirthDateUnix > DateTimeOffset.Now.ToUnixTimeSeconds() || String.IsNullOrWhiteSpace(user.Country) || String.IsNullOrWhiteSpace(user.DisplayName) ||
                 user.Password.Length < 6)
             {
                 return "error:5";
@@ -79,6 +79,111 @@ namespace Haverim.Controllers
                 return "success:" + Helpers.JWT.GetToken(Payload);
             }
             return "error:0";
+        }
+
+        [HttpPost("[Action]")]
+        public string FollowUser([FromBody]ApiClasses.FollowRequest request)
+        {
+            if (String.IsNullOrWhiteSpace(request.Token))
+                return "error:5";
+            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) = Helpers.JWT.VerifyToken(request.Token);
+
+            if (Status != Helpers.JWT.TokenStatus.Valid)
+                return "error:6";
+
+            var RequestUser = this._context.Users.Find(Payload.Username);
+            var UserToBeFollowed = this._context.Users.Find(request.TargetUser);
+
+            if (RequestUser == null)
+                return "error:0";
+
+            if (UserToBeFollowed == null)
+                return "error:0";
+
+            // User is already following target user
+            List<string> RequestUserFollowingList = RequestUser.Following;
+            if (RequestUserFollowingList.Contains(UserToBeFollowed.Username))
+                return "success";
+
+            List<string> UserToBeFollowedFollowersList = UserToBeFollowed.Followers;
+            RequestUserFollowingList.Add(UserToBeFollowed.Username);
+            UserToBeFollowedFollowersList.Add(RequestUser.Username);
+
+            RequestUser.Following = RequestUserFollowingList;
+            UserToBeFollowed.Followers = UserToBeFollowedFollowersList;
+
+            this._context.SaveChanges();
+
+            return "success";
+        }
+
+        [HttpPost("[Action]")]
+        public string UnFollowUser([FromBody]ApiClasses.FollowRequest request)
+        {
+            if (String.IsNullOrWhiteSpace(request.Token) || String.IsNullOrWhiteSpace(request.TargetUser))
+                return "error:5";
+            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) = Helpers.JWT.VerifyToken(request.Token);
+
+            if (Status != Helpers.JWT.TokenStatus.Valid)
+                return "error:6";
+
+
+            var RequestUser = this._context.Users.Find(Payload.Username);
+            var UserToBeFollowed = this._context.Users.Find(request.TargetUser);
+
+            if (RequestUser == null)
+                return "error:0";
+
+            if (UserToBeFollowed == null)
+                return "error:0";
+
+            // User is already not following target user
+            List<string> RequestUserFollowingList = RequestUser.Following;
+            if (!RequestUserFollowingList.Contains(UserToBeFollowed.Username))
+                return "success";
+
+            List<string> UserToBeFollowedFollowersList = UserToBeFollowed.Followers;
+            RequestUserFollowingList.Remove(UserToBeFollowed.Username);
+            UserToBeFollowedFollowersList.Remove(RequestUser.Username);
+
+            RequestUser.Following = RequestUserFollowingList;
+            UserToBeFollowed.Followers = UserToBeFollowedFollowersList;
+
+            this._context.SaveChanges();
+
+            return "success";
+        }
+
+        [HttpPost("[Action]")]
+        public string GetNotifications([FromBody]ApiClasses.FeedRequest request)
+        {
+            if (String.IsNullOrWhiteSpace(request.Token))
+                return "error:5";
+            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) VerifyResult = Helpers.JWT.VerifyToken(request.Token);
+
+            if (VerifyResult.Status != Helpers.JWT.TokenStatus.Valid)
+                return "error:6";
+
+            var User = this._context.Users.Find(VerifyResult.Payload.Username);
+            if (User == null)
+                return "error:0";
+
+            List<Notification> UserNotifications = User.Notifications;
+            int FeedCount = UserNotifications.Count();
+            if (request.index >= FeedCount)
+                return "error:7";
+
+            List<Notification> RequestedNotifications;
+
+            if (request.index + 10 >= FeedCount)
+            {
+                RequestedNotifications = UserNotifications.GetRange(request.index, UserNotifications.Count);
+            }
+            else
+            {
+                RequestedNotifications = UserNotifications.GetRange(request.index, request.index + 10);
+            }
+            return JsonConvert.SerializeObject(RequestedNotifications);
         }
     }
 }

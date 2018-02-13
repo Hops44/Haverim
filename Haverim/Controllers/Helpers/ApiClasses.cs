@@ -52,10 +52,23 @@ namespace Haverim.Controllers.Helpers
             public override int GetHashCode() => base.GetHashCode();
         }
 
-        public class PostFeedRequest
+        public class FeedRequest
         {
             public string Token;
             public int index;
+        }
+
+        public class CreateReply
+        {
+            public string Token;
+            public string Body;
+            public string PostId;
+        }
+
+        public class FollowRequest
+        {
+            public string Token;
+            public string TargetUser;
         }
     }
 }

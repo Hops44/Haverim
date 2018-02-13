@@ -54,7 +54,7 @@ namespace Haverim.Controllers
                         if (Tagged.Notifications == null)
                             Tagged.Notifications = new List<Notification>();
 
-                        Tagged.Notifications.Add(new Notification
+                        Tagged.Notifications.Insert(0, new Notification
                         {
                             PostId = PostId,
                             PublishDate = PublishDate,
@@ -70,20 +70,19 @@ namespace Haverim.Controllers
                 Id = PostId,
                 PublishDate = PublishDate,
                 Body = Post.Body,
-                Comments=new List<Comment>(),
-                UpvotedUsers=new List<string>()
+                Comments = new List<Comment>(),
+                UpvotedUsers = new List<string>()
             });
 
             // If the its the publisher's first post
             // ActivityFeed will be null, so we initialize it
-            if (Publisher.ActivityFeed==null)
+            if (Publisher.ActivityFeed == null)
             {
                 Publisher.ActivityFeed = new List<Activity>();
-                this._context.Users.Attach(Publisher);
             }
 
             // Add the post activity to the publisher
-            Publisher.ActivityFeed.Add(new Activity
+            Publisher.ActivityFeed.Insert(0, new Activity
             {
                 PostId = PostId,
                 Type = ActivityType.Post
@@ -93,19 +92,28 @@ namespace Haverim.Controllers
             foreach (string item in Publisher.Followers)
             {
                 User Follower = this._context.Users.Find(item);
-                var PostFeed = Follower.PostFeed;
-                PostFeed.Add(PostId.ToString());
+                List<string> PostFeed = Follower.PostFeed;
+                if (PostFeed == null)
+                {
+                    PostFeed = new List<string>
+                    {
+                        PostId.ToString()
+                    };
+                }
+                else
+                {
+                    PostFeed.Insert(0, PostId.ToString());
+                }
                 Follower.PostFeed = PostFeed;
-                this._context.Users.Attach(Follower);
             }
 
 
             this._context.SaveChanges();
             return "success:" + PostId;
         }
-     
+
         [HttpPost("[Action]")]
-        public string GetPostFeed([FromBody] ApiClasses.PostFeedRequest request)
+        public string GetPostFeed([FromBody] ApiClasses.FeedRequest request)
         {
             if (String.IsNullOrWhiteSpace(request.Token))
                 return "error:5";
@@ -151,6 +159,63 @@ namespace Haverim.Controllers
             return JsonConvert.SerializeObject(RequestedPosts);
         }
 
+        [HttpPost("[Action]")]
+        public string ReplyToPost([FromBody] ApiClasses.CreateReply reply)
+        {
+            if (String.IsNullOrWhiteSpace(reply.Token))
+                return "error:5";
+            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) = Helpers.JWT.VerifyToken(reply.Token);
 
+            if (Status != Helpers.JWT.TokenStatus.Valid)
+                return "error:6";
+            var ReplyingUser = this._context.Users.Find(Payload.Username);
+            if (ReplyingUser == null)
+                return "error:0";
+
+            if (String.IsNullOrEmpty(reply.Body))
+                return "error:5";
+
+            if (reply.Body.Length < 3)
+                return "error:4";
+
+            var Post = this._context.Posts.Find(Guid.Parse(reply.PostId));
+            if (Post == null)
+                return "error:1";
+
+            DateTime PublishTime = DateTime.Now;
+            Post.Comments.Add(new Comment
+            {
+                PublisherId = ReplyingUser.Username,
+                Id = new Guid(),
+                Body = reply.Body,
+                PublishDate = PublishTime,
+                UpvotedUsers = new List<string>()
+            });
+            this._context.Posts.Attach(Post);
+            User PostPublisher = this._context.Users.Find(Post.PublisherId);
+            if (PostPublisher.Notifications == null)
+                PostPublisher.Notifications = new List<Notification>();
+
+            PostPublisher.Notifications.Insert(0, new Notification
+            {
+                PostId = Post.Id,
+                PublishDate = PublishTime,
+                Type = NotificationType.Reply
+            });
+
+            if (ReplyingUser.ActivityFeed == null)
+                ReplyingUser.ActivityFeed = new List<Activity>();
+
+            ReplyingUser.ActivityFeed.Insert(0, new Activity
+            {
+                PostId = Post.Id,
+                Type = ActivityType.Reply
+            });
+
+            this._context.Users.Attach(PostPublisher);
+            this._context.SaveChanges();
+
+            return "success";
+        }
     }
 }
