@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Haverim.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -69,6 +70,38 @@ namespace Haverim.Controllers.Helpers
         {
             public string Token;
             public string TargetUser;
+        }
+
+        public class UpvoteRequest
+        {
+            public string Token;
+            public string PostId;
+        }
+
+        public class PublicUserData
+        {
+            public PublicUserData() { }
+            public PublicUserData(User user)
+            {
+                this.Username = user.Username;
+                this.DisplayName = user.DisplayName;
+                this.ProfilePic = user.ProfilePic;
+                this.JoinDate = user.JoinDate;
+                this.BirthDate = user.BirthDate;
+                this.IsMale = user.IsMale;
+                this.Country = user.Country;
+                this.FollowersCount = user.Followers.Count;
+                this.FollowingCount = user.Following.Count;
+            }
+            public string Username;
+            public string DisplayName;
+            public string ProfilePic;
+            public DateTime JoinDate;
+            public DateTime BirthDate;
+            public bool IsMale;
+            public string Country;
+            public int FollowersCount;
+            public int FollowingCount;
         }
     }
 }

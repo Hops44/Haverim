@@ -7,6 +7,7 @@ using System.Text;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System.Linq;
+using Haverim.Controllers.Helpers;
 
 namespace Haverim.Tests
 {
@@ -45,13 +46,13 @@ namespace Haverim.Tests
                 Global.ResetDatabase(db);
 
                 UsersController UController = ControllerFactoy(db);
-                string RegisterResult = UController.RegisterUser(new Controllers.Helpers.ApiClasses.RegisterUser
+                string RegisterResult = UController.RegisterUser(new ApiClasses.RegisterUser
                 {
                     Username = "Test User",
                     DisplayName = "Some Name",
                     Email = "example@mail.com",
                     Password = "123456",
-                    BirthDateUnix = 959558400,
+                    BirthDateUnix = (int)(new DateTime(2000, 5, 29).Subtract(new DateTime(1970, 1, 1))).TotalSeconds,
                     Country = "Israel",
                     IsMale = true,
                     ProfilePic = "FCA8DCC2-1B1D-4CC3-82BE-B06B9444328D"
@@ -341,7 +342,7 @@ namespace Haverim.Tests
                     ProfilePic = "SomeUrl"
                 };
 
-                string UserToken = UController.RegisterUser(RegisterUser).Split(':')[1] ;
+                string UserToken = UController.RegisterUser(RegisterUser).Split(':')[1];
 
                 var FakeNotificationList = new List<Notification>();
                 var User = db.Users.Find("Test User");
@@ -388,7 +389,7 @@ namespace Haverim.Tests
                 // This will check if notifications are return in the correct order
                 // it checks if the TypeCounter mod 4 equals the notification type at index i 
 
-                int TypeCounter = 0; 
+                int TypeCounter = 0;
                 for (int i = 0; i < 17; i++)
                 {
                     int ModResult = TypeCounter % 4;
@@ -421,6 +422,96 @@ namespace Haverim.Tests
                 Request.index = 17;
                 GetNotificationResult = UController.GetNotifications(Request);
                 Assert.AreEqual("error:7", GetNotificationResult);
+            }
+        }
+
+        [TestMethod]
+        public void GetUserTest()
+        {
+            using (var db = new HaverimContext(Global.ContextOptions))
+            {
+                Global.ResetDatabase(db);
+
+                var UController = new UsersController(db);
+                UController.RegisterUser(new ApiClasses.RegisterUser
+                {
+                    Username = "Test User",
+                    DisplayName = "Some User",
+                    Email = "example@mail.com",
+                    Password = "123456",
+                    IsMale = true,
+                    BirthDateUnix = (int)(new DateTime(1985, 1, 1).Subtract(new DateTime(1970, 1, 1))).TotalSeconds,
+                    Country = "United States",
+                    ProfilePic = "SomeUrl"
+                });
+
+                string GetUserResult = UController.GetUser("Test User");
+                Assert.AreNotEqual("error", GetUserResult.Split(':'));
+                var User = JsonConvert.DeserializeObject<ApiClasses.PublicUserData>(GetUserResult);
+
+                Assert.AreEqual("Test User", User.Username);
+                Assert.AreEqual(new DateTime(1985, 1, 1), User.BirthDate);
+                Assert.AreEqual(0, User.FollowersCount);
+
+                // Error tests
+                GetUserResult = UController.GetUser("None Existing");
+                Assert.AreEqual("error:0", GetUserResult);
+
+                GetUserResult = UController.GetUser(null);
+                Assert.AreEqual("error:5", GetUserResult);
+            }
+        }
+
+        [TestMethod]
+        public void GetUserFollowersTest()
+        {
+            using (var db = new HaverimContext(Global.ContextOptions))
+            {
+                Global.ResetDatabase(db);
+
+                var UController = new UsersController(db);
+                UController.RegisterUser(new ApiClasses.RegisterUser
+                {
+                    Username = "Test User",
+                    DisplayName = "Some User",
+                    Email = "example@mail.com",
+                    Password = "123456",
+                    IsMale = true,
+                    BirthDateUnix = (int)new DateTimeOffset(new DateTime(1985, 1, 1)).ToUnixTimeSeconds(),
+                    Country = "United States",
+                    ProfilePic = "SomeUrl"
+                });
+
+                var User = db.Users.Find("Test User");
+                // Fake Followers
+                User.Followers = new List<string> { "1", "2", "3" };
+                // Fake Following
+                User.Following = new List<string> { "1", "2", "3", "4", "5" };
+                db.SaveChanges();
+
+                // Get Following
+                string GetResult = UController.GetUserFollowers("Test User", false);
+                Assert.AreNotEqual("error", GetResult.Split(':')[0]);
+
+                List<string> Following = JsonConvert.DeserializeObject<List<string>>(GetResult);
+                for (int i = 0; i < 5; i++)
+                {
+                    Assert.AreEqual((i + 1).ToString(), Following[i]);
+                }
+
+                GetResult = UController.GetUserFollowers("Test User", true);
+                Assert.AreNotEqual("error", GetResult.Split(':')[0]);
+
+                List<string> Followers = JsonConvert.DeserializeObject<List<string>>(GetResult);
+                for (int i = 0; i < 3; i++)
+                {
+                    Assert.AreEqual((i + 1).ToString(), Following[i]);
+                }
+                // Error tests
+                GetResult = UController.GetUserFollowers(null, false);
+                Assert.AreEqual("error:5", GetResult);
+                GetResult = UController.GetUserFollowers("None Existing", false);
+                Assert.AreEqual("error:0", GetResult);
             }
         }
     }

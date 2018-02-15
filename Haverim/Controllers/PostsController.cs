@@ -217,5 +217,93 @@ namespace Haverim.Controllers
 
             return "success";
         }
+
+        [HttpPost("[Action]")]
+        public string UpvotePost([FromBody]ApiClasses.UpvoteRequest request)
+        {
+            if (String.IsNullOrWhiteSpace(request.Token) || String.IsNullOrWhiteSpace(request.PostId))
+                return "error:5";
+
+            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) = Helpers.JWT.VerifyToken(request.Token);
+            if (Status != Helpers.JWT.TokenStatus.Valid)
+                return "error:6";
+
+            var PostUpvoter = this._context.Users.Find(Payload.Username);
+            if (PostUpvoter == null)
+                return "error:0";
+
+            var Post = this._context.Posts.Find(Guid.Parse(request.PostId));
+            if (Post == null)
+                return "error:1";
+
+            if (Post.UpvotedUsers.Contains(PostUpvoter.Username))
+                return "success";
+
+            List<string> UpvotedUsers = Post.UpvotedUsers;
+            UpvotedUsers.Add(PostUpvoter.Username);
+            Post.UpvotedUsers = UpvotedUsers;
+
+            PostUpvoter.ActivityFeed.Insert(0, new Activity
+            {
+                PostId = Post.Id,
+                Type = ActivityType.Upvote
+            });
+
+            var PostPublisher = this._context.Users.Find(Post.PublisherId);
+            if (PostPublisher.Notifications == null)
+            {
+                PostPublisher.Notifications = new List<Notification>
+                {
+                    new Notification
+                    {
+                        PostId = Post.Id,
+                        PublishDate = DateTime.Now,
+                        Type = NotificationType.UpvotePost
+                    }
+                };
+            }
+            else
+            {
+                PostPublisher.Notifications.Insert(0, new Notification
+                {
+                    PostId = Post.Id,
+                    PublishDate = DateTime.Now,
+                    Type = NotificationType.UpvotePost
+                });
+            }
+            this._context.SaveChanges();
+            return "success";
+        }
+
+        [HttpPost("[Action]")]
+        public string RemoveUpvoteFromPost([FromBody] ApiClasses.UpvoteRequest request)
+        {
+            if (String.IsNullOrWhiteSpace(request.Token) || String.IsNullOrWhiteSpace(request.PostId))
+                return "error:5";
+
+            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) = Helpers.JWT.VerifyToken(request.Token);
+            if (Status != Helpers.JWT.TokenStatus.Valid)
+                return "error:6";
+
+            var PostUpvoter = this._context.Users.Find(Payload.Username);
+            if (PostUpvoter == null)
+                return "error:0";
+
+            var Post = this._context.Posts.Find(Guid.Parse(request.PostId));
+            if (Post == null)
+                return "error:1";
+
+            if (!Post.UpvotedUsers.Contains(PostUpvoter.Username))
+                return "success";
+
+            List<string> UpvotedUser = Post.UpvotedUsers;
+            UpvotedUser.Remove(Payload.Username);
+            Post.UpvotedUsers = UpvotedUser;
+
+            _context.SaveChanges();
+
+            return "success";
+
+        }
     }
 }

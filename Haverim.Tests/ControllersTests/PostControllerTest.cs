@@ -341,5 +341,196 @@ namespace Haverim.Tests.ControllersTests
 
             }
         }
+
+        [TestMethod]
+        public void UpvotePostTest()
+        {
+            using (var db = new HaverimContext(Global.ContextOptions))
+            {
+                Global.ResetDatabase(db);
+
+                var UController = new UsersController(db);
+                var PController = new PostsController(db);
+
+                // Regiser post publisher and another user which will upvote the publisher's post
+                var RegisterRequest = new ApiClasses.RegisterUser
+                {
+                    Username = "Post Publisher",
+                    DisplayName = "SomeDisplayName",
+                    Email = "example@mail.com",
+                    Country = "United States",
+                    BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
+                    IsMale = false,
+                    Password = "123456",
+                    ProfilePic = "Url"
+                };
+                string PublisherToken = UController.RegisterUser(RegisterRequest);
+                RegisterRequest.Username = "Upvote User";
+                RegisterRequest.Email += "m";
+                string UpvoteUserToken = UController.RegisterUser(RegisterRequest);
+
+                PublisherToken = PublisherToken.Split(':')[1];
+                UpvoteUserToken = UpvoteUserToken.Split(':')[1];
+
+                // Create post
+                string PostId = PController.CreatePost(new ApiClasses.CreatePost
+                {
+                    Token = PublisherToken,
+                    Body = "This post will get we some upvotes",
+                    Tags = null
+                });
+                PostId = PostId.Split(':')[1];
+
+                string UpvoteResult = PController.UpvotePost(new ApiClasses.UpvoteRequest
+                {
+                    Token = UpvoteUserToken,
+                    PostId = PostId
+                });
+                // Repeat
+                UpvoteResult = PController.UpvotePost(new ApiClasses.UpvoteRequest
+                {
+                    Token = UpvoteUserToken,
+                    PostId = PostId
+                });
+                Assert.AreEqual("success", UpvoteResult);
+
+                var Post = db.Posts.Find(Guid.Parse(PostId));
+                var Publisher = db.Users.Find("Post Publisher");
+                var UpvoteUser = db.Users.Find("Upvote User");
+
+                Assert.AreEqual(1, Post.UpvotedUsers.Count);
+                Assert.AreEqual("Upvote User", Post.UpvotedUsers[0]);
+
+                Assert.AreEqual(1, Publisher.Notifications.Count);
+                Assert.AreEqual(NotificationType.UpvotePost, Publisher.Notifications[0].Type);
+
+                Assert.AreEqual(1, UpvoteUser.ActivityFeed.Count);
+                Assert.AreEqual(ActivityType.Upvote, UpvoteUser.ActivityFeed[0].Type);
+
+                // Error tests
+
+                string NonExistingUserToken = Controllers.Helpers.JWT.GetToken(new ApiClasses.Payload { Username = "None" });
+
+                var UpvoteRequest = new ApiClasses.UpvoteRequest
+                {
+                    Token = NonExistingUserToken,
+                    PostId =  PostId
+                };
+                UpvoteResult = PController.UpvotePost(UpvoteRequest);
+                Assert.AreEqual("error:0", UpvoteResult);
+
+                UpvoteRequest.Token = UpvoteUserToken;
+                UpvoteRequest.PostId = Guid.NewGuid().ToString();
+                UpvoteResult = PController.UpvotePost(UpvoteRequest);
+                Assert.AreEqual("error:1", UpvoteResult);
+
+                UpvoteRequest.Token = " ";
+                UpvoteRequest.PostId = null;
+                UpvoteResult = PController.UpvotePost(UpvoteRequest);
+                Assert.AreEqual("error:5", UpvoteResult);
+
+                UpvoteRequest.Token = UpvoteUserToken+".";
+                UpvoteRequest.PostId = PostId;
+                UpvoteResult = PController.UpvotePost(UpvoteRequest);
+                Assert.AreEqual("error:6", UpvoteResult);
+            }
+        }
+
+        [TestMethod]
+        public void RemoveUpvoteFromPostTest()
+        {
+            using (var db = new HaverimContext(Global.ContextOptions))
+            {
+                Global.ResetDatabase(db);
+
+                var UController = new UsersController(db);
+                var PController = new PostsController(db);
+
+                // Regiser post publisher and another user which will upvote the publisher's post
+                var RegisterRequest = new ApiClasses.RegisterUser
+                {
+                    Username = "Post Publisher",
+                    DisplayName = "SomeDisplayName",
+                    Email = "example@mail.com",
+                    Country = "United States",
+                    BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
+                    IsMale = false,
+                    Password = "123456",
+                    ProfilePic = "Url"
+                };
+                string PublisherToken = UController.RegisterUser(RegisterRequest);
+                RegisterRequest.Username = "Upvote User";
+                RegisterRequest.Email += "m";
+                string UpvoteUserToken = UController.RegisterUser(RegisterRequest);
+
+                PublisherToken = PublisherToken.Split(':')[1];
+                UpvoteUserToken = UpvoteUserToken.Split(':')[1];
+
+                // Create post
+                string PostId = PController.CreatePost(new ApiClasses.CreatePost
+                {
+                    Token = PublisherToken,
+                    Body = "This post will get we some upvotes",
+                    Tags = null
+                });
+                PostId = PostId.Split(':')[1];
+
+                string UpvoteResult = PController.UpvotePost(new ApiClasses.UpvoteRequest
+                {
+                    Token = UpvoteUserToken,
+                    PostId = PostId
+                });
+
+                var Post = db.Posts.Find(Guid.Parse(PostId));
+                var Publisher = db.Users.Find("Post Publisher");
+                var UpvoteUser = db.Users.Find("Upvote User");
+
+                Assert.AreEqual(1, Post.UpvotedUsers.Count);
+
+                string RemoveUpvoteResult = PController.RemoveUpvoteFromPost(new ApiClasses.UpvoteRequest
+                {
+                    PostId = PostId,
+                    Token = UpvoteUserToken
+                });
+                Assert.AreEqual("success", RemoveUpvoteResult);
+                Assert.AreEqual(0, Post.UpvotedUsers.Count);
+                // Repeat
+                RemoveUpvoteResult = PController.RemoveUpvoteFromPost(new ApiClasses.UpvoteRequest
+                {
+                    PostId = PostId,
+                    Token = UpvoteUserToken
+                });
+                Assert.AreEqual("success", RemoveUpvoteResult);
+                Assert.AreEqual(0, Post.UpvotedUsers.Count);
+
+
+                // Error tests
+
+                string NonExistingUserToken = Controllers.Helpers.JWT.GetToken(new ApiClasses.Payload { Username = "None" });
+
+                var UpvoteRequest = new ApiClasses.UpvoteRequest
+                {
+                    Token = NonExistingUserToken,
+                    PostId = PostId
+                };
+                UpvoteResult = PController.RemoveUpvoteFromPost(UpvoteRequest);
+                Assert.AreEqual("error:0", UpvoteResult);
+
+                UpvoteRequest.Token = UpvoteUserToken;
+                UpvoteRequest.PostId = Guid.NewGuid().ToString();
+                UpvoteResult = PController.RemoveUpvoteFromPost(UpvoteRequest);
+                Assert.AreEqual("error:1", UpvoteResult);
+
+                UpvoteRequest.Token = " ";
+                UpvoteRequest.PostId = null;
+                UpvoteResult = PController.RemoveUpvoteFromPost(UpvoteRequest);
+                Assert.AreEqual("error:5", UpvoteResult);
+
+                UpvoteRequest.Token = UpvoteUserToken + ".";
+                UpvoteRequest.PostId = PostId;
+                UpvoteResult = PController.RemoveUpvoteFromPost(UpvoteRequest);
+                Assert.AreEqual("error:6", UpvoteResult);
+            }
+        }
     }
 }

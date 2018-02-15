@@ -199,5 +199,30 @@ namespace Haverim.Controllers
             }
             return JsonConvert.SerializeObject(RequestedNotifications);
         }
+
+        [HttpGet("[Action]/{username}")]
+        public string GetUser([FromRoute]string username)
+        {
+            if (String.IsNullOrWhiteSpace(username))
+                return "error:5";
+            var RequestedUser = this._context.Users.Find(username);
+            if (RequestedUser==null)
+                return "error:0";
+            return JsonConvert.SerializeObject(new ApiClasses.PublicUserData(RequestedUser));
+            //TODO: [Future Feature] when token is passes return all information, when not return basic information
+        }
+
+        [HttpGet("[Action]/{username}/{followers}")]
+        public string GetUserFollowers([FromRoute]string username, [FromRoute] bool followers)
+        {
+            if (String.IsNullOrWhiteSpace(username))
+                return "error:5";
+            var RequestedUser = this._context.Users.Find(username);
+            if (RequestedUser == null)
+                return "error:0";
+            if (followers)
+                return JsonConvert.SerializeObject(RequestedUser.Followers);
+            return JsonConvert.SerializeObject(RequestedUser.Following);
+        }
     }
 }
