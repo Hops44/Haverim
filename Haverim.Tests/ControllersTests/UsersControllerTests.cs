@@ -14,10 +14,7 @@ namespace Haverim.Tests
     [TestClass]
     public class UsersControllerTests
     {
-        private UsersController ControllerFactoy(HaverimContext db)
-        {
-            return new UsersController(db);
-        }
+        private UsersController ControllerFactoy(HaverimContext db) => new UsersController(db);
 
         [TestMethod]
         public void IsUsernameTakenTest()

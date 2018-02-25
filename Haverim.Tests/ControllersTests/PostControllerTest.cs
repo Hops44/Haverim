@@ -241,7 +241,7 @@ namespace Haverim.Tests.ControllersTests
                 var UController = new UsersController(db);
                 var PController = new PostsController(db);
 
-                string PublisherToken = UController.RegisterUser(new ApiClasses.RegisterUser
+                var RegisterUser = new ApiClasses.RegisterUser
                 {
                     Username = "PostPublisher",
                     DisplayName = "SomeDisplayName",
@@ -251,30 +251,16 @@ namespace Haverim.Tests.ControllersTests
                     IsMale = false,
                     Password = "123456",
                     ProfilePic = "Url"
-                });
-                string UserToReplyToken = UController.RegisterUser(new ApiClasses.RegisterUser
-                {
-                    Username = "UserToReply",
-                    DisplayName = "SomeDisplayName",
-                    Email = "example2@mail.com",
-                    Country = "United States",
-                    BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
-                    IsMale = false,
-                    Password = "123456",
-                    ProfilePic = "Url"
-                });
-
-                Assert.AreEqual(PublisherToken.Split(':')[0], "success");
-                Assert.AreEqual(UserToReplyToken.Split(':')[0], "success");
+                };
+                string PublisherToken = UController.RegisterUser(RegisterUser);
+                RegisterUser.Username = "UserToReply"; RegisterUser.Email += "m";
+                string UserToReplyToken = UController.RegisterUser(RegisterUser);
 
                 PublisherToken = PublisherToken.Split(':')[1];
                 UserToReplyToken = UserToReplyToken.Split(':')[1];
 
                 User PostPublisher = db.Users.Find("PostPublisher");
                 User ReplyingUser = db.Users.Find("UserToReply");
-
-                Assert.IsNotNull(PostPublisher);
-                Assert.IsNotNull(ReplyingUser);
 
                 string PostId = PController.CreatePost(new ApiClasses.CreatePost
                 {
@@ -284,8 +270,6 @@ namespace Haverim.Tests.ControllersTests
 
                 var Post = db.Posts.Find(Guid.Parse(PostId));
 
-                Assert.AreEqual(PostPublisher.ActivityFeed.Count, 1);
-
                 string ReplyResult = PController.ReplyToPost(new ApiClasses.CreateReply
                 {
                     Token = UserToReplyToken,
@@ -293,13 +277,29 @@ namespace Haverim.Tests.ControllersTests
                     Body = "Writing some reply body for testing!"
                 });
 
-                Assert.AreEqual(ReplyResult, "success");
+                Assert.AreEqual(ReplyResult.Split(':')[0], "success");
                 Assert.AreEqual(Post.Comments.Count, 1);
                 Assert.AreEqual(Post.Comments[0].PublisherId, ReplyingUser.Username);
                 Assert.AreEqual(PostPublisher.Notifications.Count, 1);
                 Assert.AreEqual(ReplyingUser.ActivityFeed.Count, 1);
                 Assert.AreEqual(ReplyingUser.ActivityFeed[0].Type, ActivityType.Reply);
                 Assert.AreEqual(ReplyingUser.ActivityFeed[0].PostId, Guid.Parse(PostId));
+                Assert.AreEqual(1, PostPublisher.Notifications.Count);
+                Assert.AreEqual("UserToReply", PostPublisher.Notifications[0].TargetUsername);
+
+                // Reply From Another User
+                RegisterUser.Username = "Second User"; RegisterUser.Email += "m";
+                string SecondUserToken = UController.RegisterUser(RegisterUser).Split(':')[1];
+
+                ReplyResult = PController.ReplyToPost(new ApiClasses.CreateReply
+                {
+                    Body = "Another Reply",
+                    PostId = PostId,
+                    Token = SecondUserToken
+                });
+                Assert.AreEqual("success", ReplyResult.Split(':')[0]);
+                Assert.AreEqual(2, PostPublisher.Notifications.Count);
+                Assert.AreEqual("Second User", PostPublisher.Notifications[0].TargetUsername);
 
                 /// Tests that will return error
                 // Invalid Token
@@ -414,7 +414,7 @@ namespace Haverim.Tests.ControllersTests
                 var UpvoteRequest = new ApiClasses.UpvoteRequest
                 {
                     Token = NonExistingUserToken,
-                    PostId =  PostId
+                    PostId = PostId
                 };
                 UpvoteResult = PController.UpvotePost(UpvoteRequest);
                 Assert.AreEqual("error:0", UpvoteResult);
@@ -429,7 +429,7 @@ namespace Haverim.Tests.ControllersTests
                 UpvoteResult = PController.UpvotePost(UpvoteRequest);
                 Assert.AreEqual("error:5", UpvoteResult);
 
-                UpvoteRequest.Token = UpvoteUserToken+".";
+                UpvoteRequest.Token = UpvoteUserToken + ".";
                 UpvoteRequest.PostId = PostId;
                 UpvoteResult = PController.UpvotePost(UpvoteRequest);
                 Assert.AreEqual("error:6", UpvoteResult);
@@ -530,6 +530,164 @@ namespace Haverim.Tests.ControllersTests
                 UpvoteRequest.PostId = PostId;
                 UpvoteResult = PController.RemoveUpvoteFromPost(UpvoteRequest);
                 Assert.AreEqual("error:6", UpvoteResult);
+            }
+        }
+
+        [TestMethod]
+        public void UpvoteCommentTest()
+        {
+            using (var db = new HaverimContext(Global.ContextOptions))
+            {
+                Global.ResetDatabase(db);
+
+                var UController = new UsersController(db);
+                var PController = new PostsController(db);
+
+                var RegisterUser = new ApiClasses.RegisterUser
+                {
+                    Username = "Post Publisher",
+                    DisplayName = "SomeDisplayName",
+                    Email = "example@mail.com",
+                    Country = "United States",
+                    BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
+                    IsMale = false,
+                    Password = "123456",
+                    ProfilePic = "Url"
+                };
+                string PostPublisherToken = UController.RegisterUser(RegisterUser).Split(':')[1];
+                RegisterUser.Username = "Reply User"; RegisterUser.Email += "m";
+                string ReplyUserToken = UController.RegisterUser(RegisterUser).Split(':')[1];
+
+                string PostId = PController.CreatePost(new ApiClasses.CreatePost
+                {
+                    Body = "This post will get me some upvote for sure",
+                    Token = PostPublisherToken,
+                    Tags = null
+                }).Split(':')[1];
+
+                var Post = db.Posts.Find(Guid.Parse(PostId));
+                var PostPublisher = db.Users.Find("Post Publisher");
+                var ReplyUser = db.Users.Find("Reply User");
+
+                string CommentId = PController.ReplyToPost(new ApiClasses.CreateReply
+                {
+                    Token = ReplyUserToken,
+                    Body = "Some Comment Body",
+                    PostId = PostId
+                }).Split(':')[1];
+
+                string UpvoteResult;
+                // Upvote Twice
+                for (int i = 0; i < 2; i++)
+                {
+                    UpvoteResult = PController.UpvoteComment(new ApiClasses.CommentUpvoteRequest
+                    {
+                        Token = PostPublisherToken,
+                        PostId = PostId,
+                        CommentId = CommentId
+                    });
+                    Assert.AreEqual("success", UpvoteResult);
+                    Assert.AreEqual(1, Post.Comments[0].UpvotedUsers.Count);
+                    Assert.AreEqual(1, ReplyUser.Notifications.Count);
+                    Assert.AreEqual("Post Publisher", ReplyUser.Notifications[0].TargetUsername);
+                }
+
+                // Upvote from another user
+                RegisterUser.Username = "Second User"; RegisterUser.Email += "m";
+                string SecondUserToken = UController.RegisterUser(RegisterUser).Split(':')[1];
+                UpvoteResult = PController.UpvoteComment(new ApiClasses.CommentUpvoteRequest
+                {
+                    Token = SecondUserToken,
+                    PostId = PostId,
+                    CommentId = CommentId
+                });
+                Assert.AreEqual("success", UpvoteResult);
+                Assert.AreEqual(2, Post.Comments[0].UpvotedUsers.Count);
+                Assert.AreEqual(2, ReplyUser.Notifications.Count);
+                Assert.AreEqual("Second User", ReplyUser.Notifications[0].TargetUsername);
+                Assert.AreEqual("Post Publisher", ReplyUser.Notifications[1].TargetUsername);
+
+                /// Error tests
+
+                // Reset Database and re-register users
+                Global.ResetDatabase(db);
+            }
+            using (var db = new HaverimContext(Global.ContextOptions))
+            {
+                var RegisterUser = new ApiClasses.RegisterUser
+                {
+                    Username = "Post Publisher",
+                    DisplayName = "SomeDisplayName",
+                    Email = "example@mail.com",
+                    Country = "United States",
+                    BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
+                    IsMale = false,
+                    Password = "123456",
+                    ProfilePic = "Url"
+                };
+
+                var UController = new UsersController(db);
+                var PController = new PostsController(db);
+
+                string PostPublisherToken = UController.RegisterUser(RegisterUser).Split(':')[1];
+                RegisterUser.Username = "Reply User2"; RegisterUser.Email += "mm";
+                string ReplyUserToken = UController.RegisterUser(RegisterUser).Split(':')[1];
+
+                string PostId = PController.CreatePost(new ApiClasses.CreatePost
+                {
+                    Token = PostPublisherToken,
+                    Body = "Another Post"
+                });
+                PostId = PostId.Split(':')[1];
+
+                string CommentId = PController.ReplyToPost(new ApiClasses.CreateReply
+                {
+                    Token = ReplyUserToken,
+                    Body = "Some Reply",
+                    PostId = PostId
+                }).Split(':')[1];
+
+                var Request = new ApiClasses.CommentUpvoteRequest
+                {
+                    Token = PostPublisherToken,
+                    CommentId = CommentId,
+                    PostId = PostId
+                };
+
+                // False Token
+                Request.Token += ".";
+                string UpvoteResult = PController.UpvoteComment(Request);
+                Assert.AreEqual("error:6", UpvoteResult);
+
+                // Non-existing comment 
+                Request.CommentId = Guid.NewGuid().ToString();
+                Request.Token = PostPublisherToken;
+                UpvoteResult = PController.UpvoteComment(Request);
+                Assert.AreEqual("error:8", UpvoteResult);
+
+                // Non-existing post
+                Request.PostId = Guid.NewGuid().ToString();
+                Request.CommentId = CommentId;
+                UpvoteResult = PController.UpvoteComment(Request);
+                Assert.AreEqual("error:1", UpvoteResult);
+
+                // Missing Arguments
+                UpvoteResult = PController.UpvoteComment(new ApiClasses.CommentUpvoteRequest
+                {
+                    CommentId = null,
+                    PostId = null,
+                    Token = null
+                });
+                Assert.AreEqual("error:5", UpvoteResult);
+
+
+
+                // Add assertion
+                // check if comment has an upvote
+                // upvote twice from another user
+                // upvote twice from the same user
+                // On UpvotePost upvote twice from another user
+                // check if the Reply User has a notification about an upvote
             }
         }
     }

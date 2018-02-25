@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Haverim.Migrations
 {
-    public partial class Initial : Migration
+    public partial class InitialCreate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -97,6 +97,7 @@ namespace Haverim.Migrations
                         .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
                     PostId = table.Column<Guid>(nullable: false),
                     PublishDate = table.Column<DateTime>(nullable: false),
+                    TargetUsername = table.Column<string>(nullable: true),
                     Type = table.Column<int>(nullable: false),
                     Username = table.Column<string>(nullable: true)
                 },

@@ -78,6 +78,11 @@ namespace Haverim.Controllers.Helpers
             public string PostId;
         }
 
+        public class CommentUpvoteRequest : UpvoteRequest
+        {
+            public string CommentId;
+        }
+
         public class PublicUserData
         {
             public PublicUserData() { }

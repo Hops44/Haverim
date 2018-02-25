@@ -68,6 +68,8 @@ namespace Haverim.Migrations
 
                     b.Property<DateTime>("PublishDate");
 
+                    b.Property<string>("TargetUsername");
+
                     b.Property<int>("Type");
 
                     b.Property<string>("Username");

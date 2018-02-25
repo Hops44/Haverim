@@ -12,6 +12,7 @@ namespace Haverim.Models
     public class Notification
     {
         public int Id { get; set; }
+        public string TargetUsername { get; set; }
         public NotificationType Type { get; set; }
         public DateTime PublishDate { get; set; }
         public Guid PostId { get; set; }

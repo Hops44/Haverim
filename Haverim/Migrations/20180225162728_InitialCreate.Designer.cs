@@ -11,8 +11,8 @@ using System;
 namespace Haverim.Migrations
 {
     [DbContext(typeof(HaverimContext))]
-    [Migration("20180207102931_Initial")]
-    partial class Initial
+    [Migration("20180225162728_InitialCreate")]
+    partial class InitialCreate
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -68,6 +68,8 @@ namespace Haverim.Migrations
                     b.Property<Guid>("PostId");
 
                     b.Property<DateTime>("PublishDate");
+
+                    b.Property<string>("TargetUsername");
 
                     b.Property<int>("Type");
 
