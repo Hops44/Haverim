@@ -40,7 +40,7 @@ namespace Haverim.Controllers
             var PostId = Guid.NewGuid();
             DateTime PublishDate = DateTime.Now;
 
-            // TODO:[Future Feature] Add tagged topics
+            // TODO: [Future Feature] Add tagged topics
 
             // Iterate through tags check if tagged words are users if so, we will add a notification to tagged user
             if (Post.Tags != null)
@@ -58,7 +58,8 @@ namespace Haverim.Controllers
                         {
                             PostId = PostId,
                             PublishDate = PublishDate,
-                            Type = NotificationType.Tag
+                            Type = NotificationType.Tag,
+                            TargetUsername = Publisher.Username
                         });
                         this._context.Users.Attach(Tagged);
                     }
@@ -261,7 +262,8 @@ namespace Haverim.Controllers
                     {
                         PostId = Post.Id,
                         PublishDate = DateTime.Now,
-                        Type = NotificationType.UpvotePost
+                        Type = NotificationType.UpvotePost,
+                        TargetUsername = PostUpvoter.Username
                     }
                 };
             }
@@ -271,7 +273,8 @@ namespace Haverim.Controllers
                 {
                     PostId = Post.Id,
                     PublishDate = DateTime.Now,
-                    Type = NotificationType.UpvotePost
+                    Type = NotificationType.UpvotePost,
+                    TargetUsername = PostUpvoter.Username
                 });
             }
             this._context.SaveChanges();

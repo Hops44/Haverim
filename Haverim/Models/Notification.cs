@@ -7,7 +7,7 @@ namespace Haverim.Models
 {
     public enum NotificationType
     {
-        Reply, Tag, UpvotePost, UpvoteComment
+        Reply, Tag, UpvotePost, UpvoteComment , NewFollower
     }
     public class Notification
     {

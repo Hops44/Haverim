@@ -144,7 +144,7 @@ namespace Haverim.Tests
         [TestMethod]
         public void FollowUserTest()
         {
-            //TODO:[Future Feature] when two people follow each other they become friends
+            //TODO: [Future Feature] when two people follow each other they become friends
             using (var db = new HaverimContext(Global.ContextOptions))
             {
                 Global.ResetDatabase(db);
@@ -197,6 +197,10 @@ namespace Haverim.Tests
 
                 Assert.AreEqual(MainUser.Followers[0], "Follower User");
                 Assert.AreEqual(Follower.Following[0], "Test User");
+
+                Assert.AreEqual(1, MainUser.Notifications.Count);
+                Assert.AreEqual(NotificationType.NewFollower, MainUser.Notifications[0].Type);
+                Assert.AreEqual("Follower User", MainUser.Notifications[0].TargetUsername);
 
                 // Repeat
                 FollowRequstResult = UController.FollowUser(Request);

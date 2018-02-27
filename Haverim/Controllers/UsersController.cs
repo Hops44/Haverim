@@ -112,8 +112,20 @@ namespace Haverim.Controllers
             RequestUser.Following = RequestUserFollowingList;
             UserToBeFollowed.Followers = UserToBeFollowedFollowersList;
 
-            this._context.SaveChanges();
+            // Notify user of the new follower
+            var UserToBeFollowedNotifications = UserToBeFollowed.Notifications;
+            if (UserToBeFollowedNotifications == null)
+                UserToBeFollowedNotifications = new List<Notification>();
+            UserToBeFollowedNotifications.Insert(0, new Notification
+            {
+                PublishDate = DateTime.Now,
+                TargetUsername = Payload.Username,
+                Type = NotificationType.NewFollower
+            });
+            UserToBeFollowed.Notifications = UserToBeFollowedNotifications;
 
+
+            this._context.SaveChanges();
             return "success";
         }
 
