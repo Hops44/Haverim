@@ -679,15 +679,73 @@ namespace Haverim.Tests.ControllersTests
                     Token = null
                 });
                 Assert.AreEqual("error:5", UpvoteResult);
+            }
+        }
 
+        [TestMethod]
+        public void RemoveUpvoteFromCommentTest()
+        {
+            using (var db = new HaverimContext(Global.ContextOptions))
+            {
+                Global.ResetDatabase(db);
 
+                var UController = new UsersController(db);
+                var PController = new PostsController(db);
 
-                // Add assertion
-                // check if comment has an upvote
-                // upvote twice from another user
-                // upvote twice from the same user
-                // On UpvotePost upvote twice from another user
-                // check if the Reply User has a notification about an upvote
+                var RegisterUser = new ApiClasses.RegisterUser
+                {
+                    Username = "Post Publisher",
+                    DisplayName = "SomeDisplayName",
+                    Email = "example@mail.com",
+                    Country = "United States",
+                    BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
+                    IsMale = false,
+                    Password = "123456",
+                    ProfilePic = "Url"
+                };
+                string PostPublisherToken = UController.RegisterUser(RegisterUser).Split(':')[1];
+                RegisterUser.Username = "Reply User"; RegisterUser.Email += "m";
+                string ReplyUserToken = UController.RegisterUser(RegisterUser).Split(':')[1];
+
+                string PostId = PController.CreatePost(new ApiClasses.CreatePost
+                {
+                    Body = "This post will get me some upvote for sure",
+                    Token = PostPublisherToken,
+                    Tags = null
+                }).Split(':')[1];
+
+                var Post = db.Posts.Find(Guid.Parse(PostId));
+                var PostPublisher = db.Users.Find("Post Publisher");
+                var ReplyUser = db.Users.Find("Reply User");
+
+                string CommentId = PController.ReplyToPost(new ApiClasses.CreateReply
+                {
+                    Token = ReplyUserToken,
+                    Body = "Some Comment Body",
+                    PostId = PostId
+                }).Split(':')[1];
+
+                // Upvote
+                string UpvoteResult = PController.UpvoteComment(new ApiClasses.CommentUpvoteRequest
+                {
+                    Token = PostPublisherToken,
+                    PostId = PostId,
+                    CommentId = CommentId
+                });
+
+                // Remove upvote twice
+                for (int i = 0; i < 2; i++)
+                {
+                    string RemoveResult = PController.RemoveUpvoteFromComment(new ApiClasses.CommentUpvoteRequest
+                    {
+                        Token = PostPublisherToken,
+                        PostId = PostId,
+                        CommentId = CommentId
+                    });
+
+                    Assert.AreEqual("success", RemoveResult);
+                    Assert.AreEqual(0, Post.Comments[0].UpvotedUsers.Count);
+                }
             }
         }
     }

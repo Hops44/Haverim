@@ -367,5 +367,37 @@ namespace Haverim.Controllers
             return "success";
         }
 
+        [HttpPost("[Action]")]
+        public string RemoveUpvoteFromComment([FromBody]ApiClasses.CommentUpvoteRequest request)
+        {
+            if (String.IsNullOrWhiteSpace(request.Token) || String.IsNullOrWhiteSpace(request.PostId) || String.IsNullOrWhiteSpace(request.CommentId))
+                return "error:5";
+
+            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) = Helpers.JWT.VerifyToken(request.Token);
+            if (Status != Helpers.JWT.TokenStatus.Valid)
+                return "error:6";
+
+            var PostUpvoter = this._context.Users.Find(Payload.Username);
+            if (PostUpvoter == null)
+                return "error:0";
+
+            var Post = this._context.Posts.Find(Guid.Parse(request.PostId));
+            if (Post == null)
+                return "error:1";
+
+            var Comment = Post.Comments.Find(x=>x.Id == Guid.Parse(request.CommentId));
+            if (Comment == null)
+                return "error:8";
+
+            var UpvotedUsers = Comment.UpvotedUsers;
+            if (!UpvotedUsers.Contains(Payload.Username))
+                return "success";
+
+            UpvotedUsers.Remove(Payload.Username);
+            Comment.UpvotedUsers = UpvotedUsers;
+
+            this._context.SaveChanges();
+            return "success";
+        }
     }
 }
