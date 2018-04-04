@@ -2,71 +2,75 @@ import React from "react";
 import Post from "./Post";
 import { FieldInput } from "./FieldInput";
 import "../css/PostFeed.css";
+import { POST, GET } from "../RestMethods";
+import { getUser } from "../GlobalRequests";
 
 export class PostFeed extends React.Component {
   constructor(props) {
     super(props);
+
     this.state = {
       postList: this.props.posts ? this.props.posts : [],
       finishedLoading: false
     };
     this.addPostToFeed = this.addPostToFeed.bind(this);
     this.formatTime = this.formatTime.bind(this);
-    this.up = this.up.bind(this);
-    this.timeOut = setTimeout(this.up, 700);
-
+    this.requestPostsFromServer = this.requestPostsFromServer.bind(this);
     /*
         1. Start animation with a timer
         2. fetch feed from server
         3. if feed fetch takes more than 20 seconds stop animation and display an error message
-        4. if the fetch action return in less than 20 seconds , stop the animation and display posts 
+        4. if the fetch action return in less than 20 seconds , stop the animation and display posts
         */
   }
-  up() {
-    this.setState({
-      postList: [
-        <Post
-          displayName="Omer Nahum"
-          username="@omern"
-          profilepic="/Assets/profilepic.jpg"
-          body="Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! Hello World! "
-          unixTime={1451606400}
-          extraInfo={{
-            user: {
-              username: "@omern",
-              displayName: "Omer Nahum"
-            },
-            type: 0
-          }}
-        />,
-        <Post
-          displayName="Omer Nahum"
-          username="@omern"
-          profilepic="/Assets/profilepic.jpg"
-          body="Hello World!"
-          unixTime={1451606400}
-          extraInfo={{
-            user: {
-              username: "@dsmith",
-              displayName: "David Smith"
-            },
-            type: 1
-          }}
-        />,
-        <Post
-          displayName="Omer Nahum"
-          username="@omern"
-          profilepic="/Assets/profilepic.jpg"
-          body="Hello World!"
-          unixTime={1451606400}
-        />
-      ],
-      finishedLoading: true
-    });
+
+  requestPostsFromServer(key) {
+    var body = {
+      Token: key,
+      index: 0
+    };
+    var result = POST("/api/posts/GetPostFeed", JSON.stringify(body));
+
+    //TODO: optimize
+    result = result.substring(1, result.length - 1);
+    result = result
+      .split("\\")
+      .join("")
+      .split('"[')
+      .join("[")
+      .split(']"')
+      .join("]");
+
+    var noError = result.split(":")[0] != "error";
+    var username = this.props.currentUser.Username;
+
+    var originElement = this;
+    var posts = JSON.parse(result).map(
+      function(value) {
+        var user = getUser(value.PublisherId);
+        if (user.length == 1) {
+          console.log("error:" + user);
+          user.DisplayName = "";
+        }
+        return (
+          <Post
+            currentUserProfilepic={this.props.currentUser.ProfilePic}
+            postId={value.Id}
+            displayName={user.DisplayName}
+            profilepic={user.ProfilePic}
+            username={value.PublisherId}
+            body={value.Body}
+            isUpvoted={value.UpvotedUsers.includes(username)}
+            unixTime={new Date(value.PublishDate).getTime() / 1000}
+            comments={value.Comments}
+            key={value.Id}
+          />
+        );
+      }.bind(this)
+    );
+    this.setState({ postList: posts, finishedLoading: true });
   }
-  componentWillUnmount() {
-    clearTimeout(this.timeOut);
-  }
+
   addPostToFeed(profilepic, displayName, username, body, time, key) {
     const postToAdd = (
       <Post
@@ -127,15 +131,19 @@ export class PostFeed extends React.Component {
   logKey(e) {
     console.log(e);
   }
+  componentWillMount() {
+    this.requestPostsFromServer(sessionStorage.getItem("jwtkey"));
+  }
+
   render() {
     return (
       <div>
         {!this.props.noFieldInput && (
           <FieldInput
-            username={this.props.username}
-            displayName={this.props.displayName}
+            username={this.props.currentUser.Username}
+            displayName={this.props.currentUser.DisplayName}
             addFunction={this.addPostToFeed}
-            profilepic={"/Assets/profilepic.jpg"}
+            profilepic={this.props.currentUser.ProfilePic}
             isPost={true}
           />
         )}
@@ -143,16 +151,28 @@ export class PostFeed extends React.Component {
           {this.state.finishedLoading ? (
             this.state.postList.length > 0 ? (
               this.state.postList.map(item => (
-                <li className="feed-post-item">{item}</li>
+                <li key={item.key} className="feed-post-item">
+                  {item}
+                </li>
               ))
             ) : (
-              <h1 style={{ textAlign: "center" }}>No Aviable Posts</h1>
+              <h1
+                style={{
+                  textAlign: "center"
+                }}
+              >
+                No Aviable Posts
+              </h1>
             )
           ) : (
-            <img className="load-animation" src="/Assets/load-animation.svg" />
+            <img
+              className="load-animation"
+              src="http://www.iceflowstudios.com/v3/wp-content/uploads/2013/01/LoadingCircle_firstani.gif"
+            />
           )}
         </ul>
       </div>
     );
   }
 }
+//*"/Assets/load-animation.svg"*/

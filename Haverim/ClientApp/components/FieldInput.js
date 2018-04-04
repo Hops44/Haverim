@@ -1,5 +1,7 @@
 import React from "react";
 import "../css/FieldInput.css";
+import { POST } from "../RestMethods";
+import { checkIfLogged } from "./MainPage";
 
 export class FieldInput extends React.Component {
   constructor(props) {
@@ -26,6 +28,7 @@ export class FieldInput extends React.Component {
       >
         <img className="field-profilepic" src={this.props.profilepic} />
         <textarea
+          ref={"input-value"}
           autoFocus={this.props.autoFocus}
           spellCheck={false}
           onFocus={this.fieldFocus}
@@ -56,18 +59,55 @@ export class FieldInput extends React.Component {
       </div>
     );
   }
-
   sendComment() {
     if (this.state.text.length >= 2) {
-      this.props.addFunction(
-        this.props.profilepic,
-        this.props.displayName,
-        this.props.username,
-        this.state.text,
-        this.getTime(),
-        Math.floor(Math.random() * 400)
-      );
-      this.setState({ text: "", isExpanded: false });
+      //
+      // POST
+      //
+      if (this.props.isPost) {
+        var result = POST(
+          "/api/posts/createpost",
+          JSON.stringify({
+            Token: sessionStorage.getItem("jwtkey"),
+            Body: this.state.text,
+            Tags: getTags(this.state.text)
+          })
+        );
+        var split = result.substring(1, result.length - 1).split(":");
+        if (split[0] == "error") {
+          alert("There was an error sending that post\nerror " + split[1]);
+        } else {
+          addFunction.bind(this)();
+        }
+      } else {
+        //
+        // COMMENT
+        //
+        var isLogged = checkIfLogged();
+        if (isLogged === false) {
+          console.log(isLogged);
+          return;
+        } else {
+          var result = POST(
+            "/api/posts/ReplyToPost",
+            JSON.stringify({
+              Token: sessionStorage.getItem("jwtkey"),
+              Body: this.state.text,
+              PostId: this.props.postId
+            })
+          );
+          result = result.substring(1, result.length - 1);
+          var split = result.split(":");
+          if (split[0] == "error") {
+            //console.log(result);
+            return;
+          }
+
+          var user = JSON.parse(isLogged);
+          this.props.addFunction(user.Username, this.state.text, split[1]);
+          this.setState({ text: "", isExpanded: false });
+        }
+      }
     }
   }
   fieldTextChanged(e) {
@@ -75,15 +115,41 @@ export class FieldInput extends React.Component {
   }
   fieldFocus() {
     this.setState({ isExpanded: true });
-    console.log("Focus");
+    //console.log("Focus");
   }
   fieldLostFocus() {
     if (!this.props.cantLoseFocus) {
       if (this.state.text == "") this.setState({ isExpanded: false });
-      console.log("lost");
+      //console.log("lost");
     }
   }
   getTime() {
     return Math.floor(Date.now() / 1000);
   }
+}
+
+function addFunction() {
+  this.props.addFunction(
+    this.props.profilepic,
+    this.props.displayName,
+    this.props.username,
+    this.state.text,
+    this.getTime(),
+    Math.floor(Math.random() * 400)
+  );
+  this.setState({ text: "", isExpanded: false });
+}
+
+function getTags(text) {
+  var split = text
+    .split("\n")
+    .join(" ")
+    .split(" ");
+  var tags = [];
+  for (const word of split) {
+    if (word[0] == "#") {
+      tags.push(word);
+    }
+  }
+  return tags;
 }

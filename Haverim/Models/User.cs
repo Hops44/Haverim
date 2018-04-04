@@ -15,6 +15,7 @@ namespace Haverim.Models
         public string Password { get; set; }
         public string DisplayName { get; set; }
         public string ProfilePic { get; set; }
+        public string ProfilePagePicture { get; set; }
 
         public DateTime JoinDate { get; set; }
         public DateTime BirthDate { get; set; }
@@ -24,20 +25,35 @@ namespace Haverim.Models
 
         public List<Activity> ActivityFeed { get; set; }
 
-        public List<Notification> Notifications { get; set; }
+        [NotMapped]
+        public List<Notification> Notifications
+        {
+            get
+            {
+                if (String.IsNullOrWhiteSpace(_notifications))
+                    return new List<Notification>();
+                else
+                    return JsonConvert.DeserializeObject<List<Notification>>(_notifications);
+            }
+            set
+            {
+                _notifications = JsonConvert.SerializeObject(value);
+            }
+        }
+        public string _notifications { get; set; }
 
         [NotMapped]
         public List<string> PostFeed
         {
             get
             {
-                if (String.IsNullOrWhiteSpace(_postFeed))
+                if (String.IsNullOrWhiteSpace(this._postFeed))
                     return new List<string>();
-                return JsonConvert.DeserializeObject<List<string>>(_postFeed);
+                return JsonConvert.DeserializeObject<List<string>>(this._postFeed);
             }
             set
             {
-                _postFeed = JsonConvert.SerializeObject(value);
+                this._postFeed = JsonConvert.SerializeObject(value);
             }
         }
         public string _postFeed { get; set; }
@@ -48,15 +64,15 @@ namespace Haverim.Models
         {
             get
             {
-                if (String.IsNullOrWhiteSpace(_followers))
+                if (String.IsNullOrWhiteSpace(this._followers))
                     return new List<string>();
-                return JsonConvert.DeserializeObject<List<string>>(_followers);
+                return JsonConvert.DeserializeObject<List<string>>(this._followers);
             }
             set
             {
-                _followers = JsonConvert.SerializeObject(value);
+                this._followers = JsonConvert.SerializeObject(value);
             }
-        }       
+        }
         public string _followers { get; set; }
 
 
@@ -65,13 +81,13 @@ namespace Haverim.Models
         {
             get
             {
-                if (String.IsNullOrWhiteSpace(_following))
+                if (String.IsNullOrWhiteSpace(this._following))
                     return new List<string>();
-                return JsonConvert.DeserializeObject<List<string>>(_following);
+                return JsonConvert.DeserializeObject<List<string>>(this._following);
             }
             set
             {
-                _following = JsonConvert.SerializeObject(value);
+                this._following = JsonConvert.SerializeObject(value);
             }
         }
         public string _following { get; set; }

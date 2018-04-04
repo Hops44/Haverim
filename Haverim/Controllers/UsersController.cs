@@ -39,10 +39,13 @@ namespace Haverim.Controllers
             if (String.IsNullOrWhiteSpace(user.ProfilePic))
                 user.ProfilePic = GlobalVariables.DefaultProfilePic;
 
+            if (String.IsNullOrWhiteSpace(user.ProfilePagePictue))
+                user.ProfilePagePictue = null;
+
 
             this._context.Users.Add(new Models.User
             {
-                Username = user.Username,
+                Username = user.Username.ToLower(),
                 DisplayName = user.DisplayName,
                 Password = user.Password,
                 Email = user.Email,
@@ -53,7 +56,8 @@ namespace Haverim.Controllers
                 IsMale = user.IsMale,
                 Followers = new List<string>(),
                 PostFeed = new List<string>(),
-                ProfilePic = user.ProfilePic
+                ProfilePic = user.ProfilePic,
+                ProfilePagePicture = user.ProfilePagePictue
             });
             this._context.SaveChanges();
 
@@ -171,16 +175,19 @@ namespace Haverim.Controllers
         {
             if (String.IsNullOrWhiteSpace(request.Token))
                 return "error:5";
-            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) VerifyResult = Helpers.JWT.VerifyToken(request.Token);
+            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) = Helpers.JWT.VerifyToken(request.Token);
 
-            if (VerifyResult.Status != Helpers.JWT.TokenStatus.Valid)
+            if (Status != Helpers.JWT.TokenStatus.Valid)
                 return "error:6";
 
-            var User = this._context.Users.Find(VerifyResult.Payload.Username);
+            var User = this._context.Users.Find(Payload.Username);
             if (User == null)
                 return "error:0";
 
             List<Notification> UserNotifications = User.Notifications;
+            if(UserNotifications == null)
+                return "[]";
+            
             int FeedCount = UserNotifications.Count();
             if (request.index >= FeedCount)
                 return "error:7";
@@ -218,7 +225,8 @@ namespace Haverim.Controllers
             if (String.IsNullOrWhiteSpace(username))
                 return "error:5";
             var RequestedUser = this._context.Users.Find(username);
-            if (RequestedUser==null)
+            var users = this._context.Users;
+            if (RequestedUser == null)
                 return "error:0";
             return JsonConvert.SerializeObject(new ApiClasses.PublicUserData(RequestedUser));
             //TODO: [Future Feature] when token is passes return all information, when not return basic information
@@ -235,6 +243,27 @@ namespace Haverim.Controllers
             if (followers)
                 return JsonConvert.SerializeObject(RequestedUser.Followers);
             return JsonConvert.SerializeObject(RequestedUser.Following);
+        }
+
+        [HttpPost("[Action]")]
+        public string GetUserByToken([FromBody] ApiClasses.KeyClass JWTKey)
+        {
+            (Helpers.JWT.TokenStatus status, Helpers.ApiClasses.Payload payload) = Helpers.JWT.VerifyToken(JWTKey.Key);
+            if (status != Helpers.JWT.TokenStatus.Valid)
+            {
+                return "error:6";
+            }
+            else
+            {
+                var User = this._context.Users.Find(payload.Username);
+
+                if (User == null)
+                {
+                    return "error:0";
+                }
+                return "success:" + JsonConvert.SerializeObject(new ApiClasses.CurrentUserData(User));
+            }
+
         }
     }
 }

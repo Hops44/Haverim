@@ -1,37 +1,25 @@
 import * as React from "react";
-import { Route } from "react-router-dom";
+import { BrowserRouter as Router, Route, Switch } from "react-router-dom";
 
 import { MainPage } from "./Components/MainPage";
-import { ProfilePage } from "./Components/ProfilePage";
+import { LoginPage } from "./components/LoginPage";
+import { ProfilePage } from "./components/ProfilePage";
+import { ErrorPage } from "./components/ErrorPage";
 
-const mp = () => {
-  return (
-    <MainPage currentUser={{ displayName: "Omer Nahum", username: "@omern" }} />
-  );
-};
-const pp = () => {
-  return (
-    <ProfilePage
-      profilepic="/Assets/profilepic.jpg"
-      currentUser={{
-        displayName: "Omer Nahum",
-        username: "@omern"
-      }}
-      isFollowing={false}
-      destinyUser={{
-        displayName: "Eviyatar Mizrahi",
-        username: "@evimizrahi",
-        joinDate: 1514024991,
-        birthDate: 644063391,
-        country: "United States",
-        gender: 0
-      }}
-    />
-  );
-};
 export const routes = (
-  <div>
-    <Route exact path="/" component={mp} />
-    <Route exact path="/profile" component={pp} />
-  </div>
+  <Router>
+    <div>
+      <Switch>
+        <Route exact path="/" component={MainPage} />
+        <Route path="/login" component={LoginPage} />
+        <Route exact path="/profile" component={ProfilePage} />
+        <Route
+          exact
+          path="/profile/:user"
+          component={({ match }) => <ProfilePage target={match.params.user} />}
+        />
+        <Route exact path="/invalid" component={ErrorPage} />
+      </Switch>
+    </div>
+  </Router>
 );

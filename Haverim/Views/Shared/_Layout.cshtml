@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!--<!DOCTYPE html>
 <html>
 <head>
     <meta charset="utf-8" />
@@ -6,15 +6,23 @@
     <title>@ViewData["Title"] - Haverim</title>
     <base href="~/" />
 
-    <link rel="stylesheet" href="~/dist/vendor.css" asp-append-version="true" />
-    <environment exclude="Development">
-        <link rel="stylesheet" href="~/dist/site.css" asp-append-version="true" />
-    </environment>
+   
+
 </head>
 <body>
-    @RenderBody()
 
-    <script src="~/dist/vendor.js" asp-append-version="true"></script>
-    @RenderSection("scripts", required: false)
 </body>
 </html>
+
+<!DOCTYPE html>
+<html>
+<body>
+<h1>hey</h1>
+<script src="/dist/js/main.js" />
+</body>
+<html>-->
+    <base href="~/" />
+
+    @RenderBody()
+	<script src="/dist/js/main.js"  />
+<script>alert()</script>

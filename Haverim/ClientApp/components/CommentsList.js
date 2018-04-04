@@ -1,29 +1,26 @@
 import React from "react";
 import "../css/Comments.css";
+import { getUser } from "../GlobalRequests";
+import { Link } from "react-router-dom";
 
-export class Comment extends React.Component {
+export class Comment extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = { isUpvoted: this.props.isUpvoted };
     this.upvoteClick = this.upvoteClick.bind(this);
-    this.redirectToUserPage = this.redirectToUserPage.bind(this);
   }
   render() {
     return (
       <div className="comment-container">
         <hr className="comment-split" />
-        <img
-          onClick={this.redirectToUserPage}
-          className="comment-profile-pic"
-          src={this.props.profilepic}
-        />
+        <Link to={`/profile/${this.props.username}`}>
+          <img className="comment-profile-pic" src={this.props.profilepic} />
+        </Link>
         <div className="comment-body-container">
-          <p onClick={this.redirectToUserPage} className="comment-displayname">
-            {this.props.displayName}
-          </p>
-          <p onClick={this.redirectToUserPage} className="comment-username">
-            {this.props.username}
-          </p>
+          <Link to={`/profile/${this.props.username}`}>
+            <p className="comment-displayname">{this.props.displayName}</p>
+            <p className="comment-username">{this.props.username}</p>
+          </Link>
           <p className="comment-body">{this.props.body}</p>
         </div>
         <img
@@ -44,9 +41,6 @@ export class Comment extends React.Component {
       isUpvoted: !prevState.isUpvoted
     }));
   }
-  redirectToUserPage() {
-    console.log("Redirect To ->", this.props.username);
-  }
 }
 
 export class CommentsList extends React.PureComponent {
@@ -54,14 +48,30 @@ export class CommentsList extends React.PureComponent {
     super(props);
   }
   render() {
+    console.log(this.props.comments);
+
     return (
       <div>
         <ul className="comments-list-list">
-          {this.props.comments.map(item => (
-            <li className="comments-list-item" key={item.key}>
-              {item}
-            </li>
-          ))}
+          {this.props.comments.map(item => {
+            var user = getUser(item.PublisherId);
+            if (user.length == 1) {
+              console.log("error:" + user, item.PublisherId);
+            }
+            return (
+              <li
+                className="comments-list-item"
+                key={item.PublisherId + item.Body}
+              >
+                <Comment
+                  profilepic={user.ProfilePic}
+                  displayName={user.DisplayName}
+                  username={item.PublisherId}
+                  body={item.Body}
+                />
+              </li>
+            );
+          })}
         </ul>
       </div>
     );

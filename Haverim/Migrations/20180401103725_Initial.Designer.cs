@@ -11,8 +11,8 @@ using System;
 namespace Haverim.Migrations
 {
     [DbContext(typeof(HaverimContext))]
-    [Migration("20180225162728_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20180401103725_Initial")]
+    partial class Initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -39,49 +39,6 @@ namespace Haverim.Migrations
                     b.ToTable("Activity");
                 });
 
-            modelBuilder.Entity("Haverim.Models.Comment", b =>
-                {
-                    b.Property<Guid>("Id");
-
-                    b.Property<string>("Body");
-
-                    b.Property<Guid?>("PostId");
-
-                    b.Property<DateTime>("PublishDate");
-
-                    b.Property<string>("PublisherId");
-
-                    b.Property<string>("_upvoteUsers");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("PostId");
-
-                    b.ToTable("Comment");
-                });
-
-            modelBuilder.Entity("Haverim.Models.Notification", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<Guid>("PostId");
-
-                    b.Property<DateTime>("PublishDate");
-
-                    b.Property<string>("TargetUsername");
-
-                    b.Property<int>("Type");
-
-                    b.Property<string>("Username");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Username");
-
-                    b.ToTable("Notification");
-                });
-
             modelBuilder.Entity("Haverim.Models.Post", b =>
                 {
                     b.Property<Guid>("Id");
@@ -91,6 +48,8 @@ namespace Haverim.Migrations
                     b.Property<DateTime>("PublishDate");
 
                     b.Property<string>("PublisherId");
+
+                    b.Property<string>("_comments");
 
                     b.Property<string>("_upvoteUsers");
 
@@ -117,11 +76,15 @@ namespace Haverim.Migrations
 
                     b.Property<string>("Password");
 
+                    b.Property<string>("ProfilePagePicture");
+
                     b.Property<string>("ProfilePic");
 
                     b.Property<string>("_followers");
 
                     b.Property<string>("_following");
+
+                    b.Property<string>("_notifications");
 
                     b.Property<string>("_postFeed");
 
@@ -134,20 +97,6 @@ namespace Haverim.Migrations
                 {
                     b.HasOne("Haverim.Models.User")
                         .WithMany("ActivityFeed")
-                        .HasForeignKey("Username");
-                });
-
-            modelBuilder.Entity("Haverim.Models.Comment", b =>
-                {
-                    b.HasOne("Haverim.Models.Post")
-                        .WithMany("Comments")
-                        .HasForeignKey("PostId");
-                });
-
-            modelBuilder.Entity("Haverim.Models.Notification", b =>
-                {
-                    b.HasOne("Haverim.Models.User")
-                        .WithMany("Notifications")
                         .HasForeignKey("Username");
                 });
 #pragma warning restore 612, 618

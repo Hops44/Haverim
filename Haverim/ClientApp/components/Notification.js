@@ -1,4 +1,5 @@
 import React from "react";
+import { getUser } from "../GlobalRequests";
 
 export class Notification extends React.PureComponent {
   constructor(props) {
@@ -10,16 +11,9 @@ export class Notification extends React.PureComponent {
     this.generateText = this.generateText.bind(this);
     this.formatTime = this.formatTime.bind(this);
   }
-  render() {
-    return (
-      <div className="notification">
-        <p className="notification-text">{this.generateText()}</p>
-        <p className="notification-time">{this.formatTime()}</p>
-      </div>
-    );
-  }
+
   generateText() {
-    var text = this.props.displayName + " ";
+    var text = "";
     switch (this.props.type) {
       case 0:
         text += "Has Replied To Your Post";
@@ -31,9 +25,20 @@ export class Notification extends React.PureComponent {
         text += "Has Upvoted Your Post";
         break;
       case 3:
-          text += "Has Upvoted Your Comment";
+        text += "Has Upvoted Your Comment";
+        break;
+      case 4:
+        text += "Is Now Following You";
+        break;
     }
-    return text;
+    return (
+      <p style={{ color: "#828282" }} className="notification-text">
+        <b style={{ color: "#4F4F4F", fontWeight: "300" }}>
+          {getUser(this.props.username).DisplayName}
+        </b>{" "}
+        {text}
+      </p>
+    );
   }
   formatTime() {
     const now = this.state.currentUnixTime;
@@ -76,5 +81,14 @@ export class Notification extends React.PureComponent {
       "December"
     ];
     return monthNames[monthNum];
+  }
+
+  render() {
+    return (
+      <div className="notification">
+        {this.generateText()}
+        <p className="notification-time">{this.formatTime()}</p>
+      </div>
+    );
   }
 }

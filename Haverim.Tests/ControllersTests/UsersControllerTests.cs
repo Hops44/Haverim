@@ -45,7 +45,7 @@ namespace Haverim.Tests
                 UsersController UController = ControllerFactoy(db);
                 string RegisterResult = UController.RegisterUser(new ApiClasses.RegisterUser
                 {
-                    Username = "Test User",
+                    Username = "test user",
                     DisplayName = "Some Name",
                     Email = "example@mail.com",
                     Password = "123456",
@@ -55,7 +55,7 @@ namespace Haverim.Tests
                     ProfilePic = "FCA8DCC2-1B1D-4CC3-82BE-B06B9444328D"
                 });
 
-                var User = db.Users.Find("Test User");
+                var User = db.Users.Find("test user");
 
                 Assert.AreEqual(RegisterResult.Split(':').Length, 2);
                 Assert.AreEqual(RegisterResult.Split(':')[0], "success");
@@ -71,7 +71,7 @@ namespace Haverim.Tests
 
                 var RegisterUserObject = new Controllers.Helpers.ApiClasses.RegisterUser
                 {
-                    Username = "Test User",
+                    Username = "test user",
                     DisplayName = "Omer Nahum",
                     Email = "example@mail.com",
                     Password = "123456",
@@ -84,13 +84,13 @@ namespace Haverim.Tests
                 RegisterResult = UController.RegisterUser(RegisterUserObject);
                 Assert.AreEqual(RegisterResult, "error:2"); // Username in use
 
-                RegisterUserObject.Username = "Test User2";
+                RegisterUserObject.Username = "test user2";
                 RegisterResult = UController.RegisterUser(RegisterUserObject);
                 Assert.AreEqual(RegisterResult, "error:3"); // Email in use
 
                 // Missing Parameters
                 RegisterUserObject.Email = "NotTaken@mail.com";
-                RegisterUserObject.Username = "Test User3";
+                RegisterUserObject.Username = "test user3";
                 RegisterUserObject.DisplayName = null;
 
                 RegisterResult = UController.RegisterUser(RegisterUserObject);
@@ -113,7 +113,7 @@ namespace Haverim.Tests
                 Global.ResetDatabase(db);
                 db.Users.Add(new User
                 {
-                    Username = "Test User",
+                    Username = "test user",
                     DisplayName = "Some User",
                     Email = "example@mail.com",
                     Password = "123456",
@@ -122,7 +122,7 @@ namespace Haverim.Tests
                 db.SaveChanges();
                 var User = new Controllers.Helpers.ApiClasses.LoginUser
                 {
-                    Username = "Test User",
+                    Username = "test user",
                     Password = "123456"
                 };
                 Assert.AreEqual(UController.LoginUser(User).Split(':').Length, 2);
@@ -133,7 +133,7 @@ namespace Haverim.Tests
                 User.Username = "False User";   // False Username
                 Assert.IsFalse(UController.LoginUser(User).Split(':')[0] == "error:0");
 
-                User.Username = "Test User";
+                User.Username = "test user";
                 User.Password = "123455";   // False Password
                 Assert.IsFalse(UController.LoginUser(User).Split(':')[0] == "error:0");
 
@@ -153,7 +153,7 @@ namespace Haverim.Tests
 
                 string MainUserToken = UController.RegisterUser(new Controllers.Helpers.ApiClasses.RegisterUser
                 {
-                    Username = "Test User",
+                    Username = "test user",
                     DisplayName = "Some User",
                     Email = "example@mail.com",
                     Password = "123456",
@@ -164,7 +164,7 @@ namespace Haverim.Tests
                 });
                 string FollowerUserToken = UController.RegisterUser(new Controllers.Helpers.ApiClasses.RegisterUser
                 {
-                    Username = "Follower User",
+                    Username = "follower user",
                     DisplayName = "Some User",
                     Email = "example2@mail.com",
                     Password = "123456",
@@ -183,24 +183,24 @@ namespace Haverim.Tests
                 var Request = new Controllers.Helpers.ApiClasses.FollowRequest
                 {
                     Token = FollowerUserToken,
-                    TargetUser = "Test User"
+                    TargetUser = "test user"
                 };
 
                 string FollowRequstResult = UController.FollowUser(Request);
                 Assert.AreEqual(FollowRequstResult, "success");
 
-                User MainUser = db.Users.Find("Test User");
-                User Follower = db.Users.Find("Follower User");
+                User MainUser = db.Users.Find("test user");
+                User Follower = db.Users.Find("follower user");
 
                 Assert.AreEqual(MainUser.Followers.Count, 1);
                 Assert.AreEqual(Follower.Following.Count, 1);
 
-                Assert.AreEqual(MainUser.Followers[0], "Follower User");
-                Assert.AreEqual(Follower.Following[0], "Test User");
+                Assert.AreEqual(MainUser.Followers[0], "follower user");
+                Assert.AreEqual(Follower.Following[0], "test user");
 
                 Assert.AreEqual(1, MainUser.Notifications.Count);
                 Assert.AreEqual(NotificationType.NewFollower, MainUser.Notifications[0].Type);
-                Assert.AreEqual("Follower User", MainUser.Notifications[0].TargetUsername);
+                Assert.AreEqual("follower user", MainUser.Notifications[0].TargetUsername);
 
                 // Repeat
                 FollowRequstResult = UController.FollowUser(Request);
@@ -209,8 +209,8 @@ namespace Haverim.Tests
                 Assert.AreEqual(MainUser.Followers.Count, 1);
                 Assert.AreEqual(Follower.Following.Count, 1);
 
-                Assert.AreEqual(MainUser.Followers[0], "Follower User");
-                Assert.AreEqual(Follower.Following[0], "Test User");
+                Assert.AreEqual(MainUser.Followers[0], "follower user");
+                Assert.AreEqual(Follower.Following[0], "test user");
 
                 /// Errors tests
                 Request.Token += ".";
@@ -235,13 +235,13 @@ namespace Haverim.Tests
             {
                 Global.ResetDatabase(db);
 
-                // Create 2 users -> 'Test User' and 'Follower User'
-                // Follower User will follow Test User
+                // Create 2 users -> 'test user' and 'follower user'
+                // follower user will follow test user
                 var UController = new UsersController(db);
 
                 string MainUserToken = UController.RegisterUser(new Controllers.Helpers.ApiClasses.RegisterUser
                 {
-                    Username = "Test User",
+                    Username = "test user",
                     DisplayName = "Some User",
                     Email = "example@mail.com",
                     Password = "123456",
@@ -252,7 +252,7 @@ namespace Haverim.Tests
                 });
                 string FollowerUserToken = UController.RegisterUser(new Controllers.Helpers.ApiClasses.RegisterUser
                 {
-                    Username = "Follower User",
+                    Username = "follower user",
                     DisplayName = "Some User",
                     Email = "example2@mail.com",
                     Password = "123456",
@@ -271,19 +271,19 @@ namespace Haverim.Tests
                 var Request = new Controllers.Helpers.ApiClasses.FollowRequest
                 {
                     Token = FollowerUserToken,
-                    TargetUser = "Test User"
+                    TargetUser = "test user"
                 };
 
                 string FollowRequstResult = UController.FollowUser(Request);
 
-                User MainUser = db.Users.Find("Test User");
-                User Follower = db.Users.Find("Follower User");
+                User MainUser = db.Users.Find("test user");
+                User Follower = db.Users.Find("follower user");
 
-                // Make Follower User unfollow Test User
+                // Make follower user unfollow test user
                 Request = new Controllers.Helpers.ApiClasses.FollowRequest
                 {
                     Token = FollowerUserToken,
-                    TargetUser = "Test User"
+                    TargetUser = "test user"
                 };
 
                 string UnFollowRequstResult = UController.UnFollowUser(Request);
@@ -333,7 +333,7 @@ namespace Haverim.Tests
 
                 var RegisterUser = new Controllers.Helpers.ApiClasses.RegisterUser
                 {
-                    Username = "Test User",
+                    Username = "test user",
                     DisplayName = "Some User",
                     Email = "example@mail.com",
                     Password = "123456",
@@ -346,7 +346,7 @@ namespace Haverim.Tests
                 string UserToken = UController.RegisterUser(RegisterUser).Split(':')[1];
 
                 var FakeNotificationList = new List<Notification>();
-                var User = db.Users.Find("Test User");
+                var User = db.Users.Find("test user");
 
                 // Add fake notifications
                 for (int i = 0; i < 17; i++)
@@ -436,7 +436,7 @@ namespace Haverim.Tests
                 var UController = new UsersController(db);
                 UController.RegisterUser(new ApiClasses.RegisterUser
                 {
-                    Username = "Test User",
+                    Username = "test user",
                     DisplayName = "Some User",
                     Email = "example@mail.com",
                     Password = "123456",
@@ -446,11 +446,11 @@ namespace Haverim.Tests
                     ProfilePic = "SomeUrl"
                 });
 
-                string GetUserResult = UController.GetUser("Test User");
+                string GetUserResult = UController.GetUser("test user");
                 Assert.AreNotEqual("error", GetUserResult.Split(':'));
                 var User = JsonConvert.DeserializeObject<ApiClasses.PublicUserData>(GetUserResult);
 
-                Assert.AreEqual("Test User", User.Username);
+                Assert.AreEqual("test user", User.Username);
                 Assert.AreEqual(new DateTime(1985, 1, 1), User.BirthDate);
                 Assert.AreEqual(0, User.FollowersCount);
 
@@ -473,7 +473,7 @@ namespace Haverim.Tests
                 var UController = new UsersController(db);
                 UController.RegisterUser(new ApiClasses.RegisterUser
                 {
-                    Username = "Test User",
+                    Username = "test user",
                     DisplayName = "Some User",
                     Email = "example@mail.com",
                     Password = "123456",
@@ -483,7 +483,7 @@ namespace Haverim.Tests
                     ProfilePic = "SomeUrl"
                 });
 
-                var User = db.Users.Find("Test User");
+                var User = db.Users.Find("test user");
                 // Fake Followers
                 User.Followers = new List<string> { "1", "2", "3" };
                 // Fake Following
@@ -491,7 +491,7 @@ namespace Haverim.Tests
                 db.SaveChanges();
 
                 // Get Following
-                string GetResult = UController.GetUserFollowers("Test User", false);
+                string GetResult = UController.GetUserFollowers("test user", false);
                 Assert.AreNotEqual("error", GetResult.Split(':')[0]);
 
                 List<string> Following = JsonConvert.DeserializeObject<List<string>>(GetResult);
@@ -500,7 +500,7 @@ namespace Haverim.Tests
                     Assert.AreEqual((i + 1).ToString(), Following[i]);
                 }
 
-                GetResult = UController.GetUserFollowers("Test User", true);
+                GetResult = UController.GetUserFollowers("test user", true);
                 Assert.AreNotEqual("error", GetResult.Split(':')[0]);
 
                 List<string> Followers = JsonConvert.DeserializeObject<List<string>>(GetResult);

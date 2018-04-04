@@ -260,3 +260,12 @@ paket-files/
 __pycache__/
 *.pyc
 /Haverim.Tests/CreateFakeUsers.cs
+/Haverim/.cache
+/Haverim/.vscode
+/Haverim/bin
+/Haverim/node_modules
+/Haverim/obj
+
+/Haverim/.cache
+/Haverim/.cache/005a161ae63ed367286ab4d6ed008a33.json
+/Haverim/.cache

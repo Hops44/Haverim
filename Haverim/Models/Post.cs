@@ -13,7 +13,23 @@ namespace Haverim.Models
         public string PublisherId { get; set; }
         public DateTime PublishDate { get; set; }
         public string Body { get; set; }
-        public List<Comment> Comments { get; set; }
+
+        [NotMapped]
+        public List<Comment> Comments
+        {
+            get
+            {
+                if (String.IsNullOrWhiteSpace(_comments))
+                    return new List<Comment>();
+                else
+                    return JsonConvert.DeserializeObject<List<Comment>>(_comments);
+            }
+            set
+            {
+                _comments = JsonConvert.SerializeObject(value);
+            }
+        }
+        public string _comments { get; set; }
 
         [NotMapped]
         public List<string> UpvotedUsers

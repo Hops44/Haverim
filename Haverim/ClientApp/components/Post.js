@@ -2,24 +2,25 @@ import React from "react";
 import Modal from "./Modal";
 import { QuickReply } from "./QuickReply";
 import "../css/Post.css";
+import { POST } from "../RestMethods";
+import { Link } from "react-router-dom";
 
 class Post extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      isUpvoted: false,
+      isUpvoted: this.props.isUpvoted ? this.props.isUpvoted : false,
       modalVisibility: false,
       quickReplyVisibility: false,
       currentUnixTime: Date.now() / 1000
     };
-
     this.upvoteClick = this.upvoteClick.bind(this);
     this.openPostModal = this.openPostModal.bind(this);
-    this.redirectToUserPage = this.redirectToUserPage.bind(this);
     this.openQuickReply = this.openQuickReply.bind(this);
     this.closeQuickReply = this.closeQuickReply.bind(this);
     this.formatTime = this.formatTime.bind(this);
     this.generateText = this.generateText.bind(this);
+    console.log('shalom');
   }
 
   openQuickReply() {
@@ -29,6 +30,16 @@ class Post extends React.PureComponent {
     this.setState({ quickReplyVisibility: false });
   }
   upvoteClick() {
+    var result = POST(
+      `/api/posts/${
+        this.state.isUpvoted ? "RemoveUpvoteFromPost" : "UpvotePost"
+      }`,
+      JSON.stringify({
+        Token: sessionStorage.getItem("jwtkey"),
+        PostId: this.props.postId
+      })
+    );
+
     this.setState(prevState => ({
       isUpvoted: !prevState.isUpvoted
     }));
@@ -37,10 +48,6 @@ class Post extends React.PureComponent {
     this.setState(prevState => ({
       modalVisibility: !prevState.modalVisibility
     }));
-    console.log("Modal");
-  }
-  redirectToUserPage(user) {
-    console.log("Redirected To " + user);
   }
 
   formatTime() {
@@ -104,35 +111,25 @@ class Post extends React.PureComponent {
     return (
       <div>
         {this.props.extraInfo && (
-          <p
-            onClick={() =>
-              this.redirectToUserPage(this.props.extraInfo.user.username)
-            }
-            className="post-other-user-info noselect"
-          >
-            {this.generateText()}
-          </p>
+          <Link to={`/profile/${this.props.extraInfo.user.username}`}>
+            <p className="post-other-user-info noselect">
+              {this.generateText()}
+            </p>
+          </Link>
         )}
         <div className="post-container">
           <div className="post-user-container noselect">
-            <img
-              onClick={() => this.redirectToUserPage(this.props.username)}
-              className="post-profile-pic"
-              src={this.props.profilepic}
-            />
+            <Link className="Link" to={`/profile/${this.props.username}`}>
+              <img
+                className="post-profile-pic ProfilePicture"
+                src={this.props.profilepic}
+              />
+            </Link>
             <div className="post-user-text-container">
-              <p
-                onClick={() => this.redirectToUserPage(this.props.username)}
-                className="post-displayname"
-              >
-                {this.props.displayName}
-              </p>
-              <p
-                onClick={() => this.redirectToUserPage(this.props.username)}
-                className="post-username"
-              >
-                {this.props.username}
-              </p>
+              <Link className="Link" to={`/profile/${this.props.username}`}>
+                <p className="post-displayname">{this.props.displayName}</p>
+                <p className="post-username">{this.props.username}</p>
+              </Link>
               <p style={{ cursor: "default" }} className="post-time">
                 {this.formatTime(this.props.unixTime)}
               </p>
@@ -141,7 +138,12 @@ class Post extends React.PureComponent {
           <p onClick={this.openPostModal} className="post-body noselect">
             {this.props.body}
           </p>
-          <hr className="post-split" />
+          {/* <div
+            onClick={() => this.setState({ modalVisibility: true })}
+            className="post-split"
+          >
+            <div className="post-split-content" />
+          </div> */}
           <div className="post-social-icons">
             <img
               onClick={this.upvoteClick}
@@ -173,14 +175,16 @@ class Post extends React.PureComponent {
             closeFunction={this.openPostModal}
             isUpvoted={this.state.isUpvoted}
             upvoteFunction={this.upvoteClick}
+            comments={this.props.comments}
+            postId={this.props.postId}
+            currentUserProfilepic={this.props.currentUserProfilepic}
           />
         )}
         {this.state.quickReplyVisibility && (
           <QuickReply
-            profilepic={this.props.profilepic}
-            username={this.props.username}
-            displayName={this.props.displayName}
+            profilepic={this.props.currentUserProfilepic}
             closeFunction={this.closeQuickReply}
+            postId={this.props.postId}
           />
         )}
       </div>

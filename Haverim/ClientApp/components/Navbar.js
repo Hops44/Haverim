@@ -1,6 +1,7 @@
 import React from "react";
 import "../css/Navbar.css";
 import { DropdownList } from "./DropdownList";
+import { Link } from "react-router-dom";
 
 class NavBar extends React.Component {
   constructor(props) {
@@ -14,7 +15,6 @@ class NavBar extends React.Component {
     return (
       <div className="nav-bar">
         <div id="centerrr" />
-
         <img
           onClick={this.notificationIconClicked.bind(this)}
           className="notification-img"
@@ -25,28 +25,17 @@ class NavBar extends React.Component {
         )}
         <img className="inbox-img" src="/Assets/inbox.svg" />
         <div className="haverim-header-container noselect">
-          <p
-            onClick={this.redirectToHome.bind(this)}
-            className="haverim-header"
-          >
-            Haverim
-          </p>
+          <Link to="/">
+            <p className="haverim-header">Haverim</p>
+          </Link>
         </div>
-        <img
-          onClick={this.redirectToUserPage.bind(this)}
-          className="profile-img"
-          src={this.props.profilepic}
-        />
+        <Link to={"/profile"}>
+          <img className="profile-img" src={this.props.profilepic} />
+        </Link>
       </div>
     );
   }
-  redirectToHome() {
-    //window.location.href = "/";
-    alert("Home");
-  }
-  redirectToUserPage() {
-    alert("User page");
-  }
+
   notificationIconClicked() {
     this.setState(prevState => ({
       notificationExpanded: !prevState.notificationExpanded

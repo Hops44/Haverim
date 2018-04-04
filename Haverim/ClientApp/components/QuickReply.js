@@ -15,21 +15,20 @@ export class QuickReply extends React.Component {
         <div onClick={this.closeQuickReply} className="modal-background" />
         <div className="quick-reply-field-container">
           <FieldInput
+            profilepic={this.props.profilepic}
             autoFocus={true}
             cantLoseFocus={true}
             isExpanded={true}
-            profilepic={this.props.profilepic}
             isPost={false}
-            displayName={this.props.displayName}
             username={this.props.username}
             addFunction={this.sendComment}
+            postId={this.props.postId}
           />
         </div>
       </div>
     );
   }
   sendComment() {
-    console.log("Sent ->", arguments[3]);
     this.closeQuickReply();
   }
   closeQuickReply() {

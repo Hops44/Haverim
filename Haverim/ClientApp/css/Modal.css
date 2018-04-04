@@ -28,6 +28,10 @@
   grid-template-rows: 85px;
   grid-template-columns: 95px auto;
 }
+.modal-user-container:hover {
+  text-decoration: underline rgb(218, 218, 218);
+}
+
 .modal-user-info-container {
   font-size: 20px;
   margin-top: auto;
@@ -49,6 +53,9 @@
   margin-top: 5px;
   border-radius: 100%;
 }
+.modal-profile-image:hover {
+  opacity: 0.9;
+}
 .modal-body {
   width: 90%;
   margin-left: 20px;
@@ -58,6 +65,14 @@
   border: 0;
   border-bottom: 1px rgba(128, 128, 128, 0.178) solid;
   width: 100%;
+  margin-top: 10px;
+}
+.modal-social-icon-container {
+  margin-right: 30px;
+  margin-bottom: 10px;
+  height: 30px;
+  width: 30px;
+  float: right;
 }
 .modal-social-icon {
   width: 25px;

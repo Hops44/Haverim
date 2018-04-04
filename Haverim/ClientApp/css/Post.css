@@ -13,6 +13,7 @@
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.16), 0 6px 20px rgba(0, 0, 0, 0.23);
   margin: auto;
   background-color: white;
+  padding-left: 0;
 }
 .post-other-user-info {
   width: 80%;
@@ -27,18 +28,19 @@
   border-bottom: 0;
   box-shadow: 0 1px 20px rgba(0, 0, 0, 0.16), 0 6px 20px rgba(0, 0, 0, 0.23);
   color: #bfbfbf;
-  cursor: pointer;
 }
 .post-other-user-info:hover {
   text-decoration: underline;
   color: #979797;
 }
 .post-user-container {
-  cursor: pointer;
   grid-column: col0 / col2;
   display: grid;
   grid-template-columns: [col0]70px[col1] auto;
-  grid-template-rows: 25px [row0]25px [row1] auto;
+  grid-template-rows: 25px 25px;
+  border-bottom: 1px solid rgba(214, 214, 214, 0.295);
+  margin-bottom: 5px;
+  padding-left: 5px;
 }
 .post-profile-pic {
   width: 70px;
@@ -72,18 +74,13 @@
 .post-body {
   color: #4f4f4f;
   cursor: pointer;
-  grid-column: col1;
-  grid-row: 2;
-  margin-top: 0;
-}
-.post-split {
-  bottom: 0px;
-  width: 100%;
-  border: 0;
-  border-bottom: rgba(214, 214, 214, 0.295) 2px solid;
-  border-style: solid;
   grid-column: 1/4;
-  grid-row: 3;
+  grid-row: 2;
+  margin: 0;
+  padding-bottom: 30px;
+  margin-bottom: 10px;
+  padding-left: 80px;
+  border-bottom: 1px solid rgba(214, 214, 214, 0.295);
 }
 
 .post-social-icons {

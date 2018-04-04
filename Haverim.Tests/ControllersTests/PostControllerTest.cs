@@ -38,7 +38,7 @@ namespace Haverim.Tests.ControllersTests
 
                 var publisher = new Controllers.Helpers.ApiClasses.RegisterUser
                 {
-                    Username = "Test User",
+                    Username = "test user",
                     DisplayName = "Publisher",
                     Email = "example@mail.com",
                     Password = "123456",
@@ -49,7 +49,7 @@ namespace Haverim.Tests.ControllersTests
                 };
                 var follower = new Controllers.Helpers.ApiClasses.RegisterUser
                 {
-                    Username = "Test Follower",
+                    Username = "test follower",
                     DisplayName = "Follower",
                     Email = "example2@mail.com",
                     Password = "123456",
@@ -71,26 +71,26 @@ namespace Haverim.Tests.ControllersTests
                 PublisherToken = PublisherToken.Split(':')[1];
                 FollowerToken = FollowerToken.Split(':')[1];
 
-                var PublisherUser = db.Users.Find("Test User");
+                var PublisherUser = db.Users.Find("test user");
                 Assert.IsNotNull(PublisherUser);
-                PublisherUser.Followers = new List<string> { "Test Follower" };
+                PublisherUser.Followers = new List<string> { "test follower" };
                 db.SaveChanges();
 
-                var FollowerAccualUser = db.Users.Find("Test Follower");
+                var FollowerAccualUser = db.Users.Find("test follower");
                 Assert.IsNotNull(FollowerAccualUser);
-                FollowerAccualUser.Following = new List<string>() { "Test User" };
+                FollowerAccualUser.Following = new List<string>() { "test user" };
                 db.SaveChanges();
 
-                FollowerAccualUser = db.Users.Find("Test Follower");
+                FollowerAccualUser = db.Users.Find("test follower");
                 Assert.IsNotNull(FollowerAccualUser);
                 Assert.AreEqual(FollowerAccualUser.Following.Count, 1);
                 Assert.AreEqual(PublisherUser.Followers.Count, 1);
 
-                var post = new Controllers.Helpers.ApiClasses.CreatePost
+                var post = new ApiClasses.CreatePost
                 {
                     Token = PublisherToken,
                     Body = "12",
-                    Tags = new List<string>() { "Test Follower" }
+                    Tags = new List<string>() { "test follower" }
                 };
 
                 Assert.AreEqual(PController.CreatePost(new Controllers.Helpers.ApiClasses.CreatePost()), "error:5");
@@ -104,7 +104,7 @@ namespace Haverim.Tests.ControllersTests
                 Assert.IsTrue(CreateResult.Contains("success"));
                 Assert.AreEqual(PostId.Length, 36);
 
-                FollowerAccualUser = db.Users.Find("Test Follower");
+                FollowerAccualUser = db.Users.Find("test follower");
                 Assert.AreEqual(FollowerAccualUser.Notifications.Count, 1);
 
                 Assert.AreEqual(FollowerAccualUser.PostFeed.Count, 1);
@@ -117,11 +117,11 @@ namespace Haverim.Tests.ControllersTests
                 Assert.AreEqual(notification.Type, NotificationType.Tag);
                 Assert.AreEqual(notification.PostId, new Guid(PostId));
 
-                PublisherUser = db.Users.Find("Test User");
+                PublisherUser = db.Users.Find("test user");
                 Assert.AreEqual(PublisherUser.ActivityFeed.Count, 1);
                 var PostFromPublisherActivityFeed = db.Posts.Find(PublisherUser.ActivityFeed[0].PostId);
                 Assert.IsNotNull(PostFromPublisherActivityFeed);
-                Assert.AreEqual(PostFromPublisherActivityFeed.PublisherId, "Test User");
+                Assert.AreEqual(PostFromPublisherActivityFeed.PublisherId, "test user");
 
             }
         }
@@ -138,7 +138,7 @@ namespace Haverim.Tests.ControllersTests
 
                 var RegisterUserInstance = new ApiClasses.RegisterUser
                 {
-                    Username = "Test User",
+                    Username = "test user",
                     DisplayName = "Publisher",
                     Email = "example@mail.com",
                     Password = "123456",
@@ -158,7 +158,7 @@ namespace Haverim.Tests.ControllersTests
                 UController.FollowUser(new ApiClasses.FollowRequest
                 {
                     Token = FollowerToken,
-                    TargetUser = "Test User"
+                    TargetUser = "test user"
                 });
 
                 // Post 17 Posts with a body of its posted index (i)
@@ -171,7 +171,7 @@ namespace Haverim.Tests.ControllersTests
                         Tags = null
                     });
                 }
-                var Publisher = db.Users.Find("Test User");
+                var Publisher = db.Users.Find("test user");
                 var Follower = db.Users.Find("Follower User");
 
                 string PostFeedResult = PController.GetPostFeed(new ApiClasses.FeedRequest
@@ -243,7 +243,7 @@ namespace Haverim.Tests.ControllersTests
 
                 var RegisterUser = new ApiClasses.RegisterUser
                 {
-                    Username = "PostPublisher",
+                    Username = "post publisher",
                     DisplayName = "SomeDisplayName",
                     Email = "example@mail.com",
                     Country = "United States",
@@ -253,14 +253,14 @@ namespace Haverim.Tests.ControllersTests
                     ProfilePic = "Url"
                 };
                 string PublisherToken = UController.RegisterUser(RegisterUser);
-                RegisterUser.Username = "UserToReply"; RegisterUser.Email += "m";
-                string UserToReplyToken = UController.RegisterUser(RegisterUser);
+                RegisterUser.Username = "usertoreply"; RegisterUser.Email += "m";
+                string usertoreplyToken = UController.RegisterUser(RegisterUser);
 
                 PublisherToken = PublisherToken.Split(':')[1];
-                UserToReplyToken = UserToReplyToken.Split(':')[1];
+                usertoreplyToken = usertoreplyToken.Split(':')[1];
 
-                User PostPublisher = db.Users.Find("PostPublisher");
-                User ReplyingUser = db.Users.Find("UserToReply");
+                User PostPublisher = db.Users.Find("post publisher");
+                User ReplyingUser = db.Users.Find("usertoreply");
 
                 string PostId = PController.CreatePost(new ApiClasses.CreatePost
                 {
@@ -272,7 +272,7 @@ namespace Haverim.Tests.ControllersTests
 
                 string ReplyResult = PController.ReplyToPost(new ApiClasses.CreateReply
                 {
-                    Token = UserToReplyToken,
+                    Token = usertoreplyToken,
                     PostId = PostId,
                     Body = "Writing some reply body for testing!"
                 });
@@ -285,7 +285,7 @@ namespace Haverim.Tests.ControllersTests
                 Assert.AreEqual(ReplyingUser.ActivityFeed[0].Type, ActivityType.Reply);
                 Assert.AreEqual(ReplyingUser.ActivityFeed[0].PostId, Guid.Parse(PostId));
                 Assert.AreEqual(1, PostPublisher.Notifications.Count);
-                Assert.AreEqual("UserToReply", PostPublisher.Notifications[0].TargetUsername);
+                Assert.AreEqual("usertoreply", PostPublisher.Notifications[0].TargetUsername);
 
                 // Reply From Another User
                 RegisterUser.Username = "Second User"; RegisterUser.Email += "m";
@@ -305,7 +305,7 @@ namespace Haverim.Tests.ControllersTests
                 // Invalid Token
                 var Reply = new ApiClasses.CreateReply
                 {
-                    Token = UserToReplyToken + ".",
+                    Token = usertoreplyToken + ".",
                     Body = "Some Body",
                     PostId = PostId
                 };
@@ -313,7 +313,7 @@ namespace Haverim.Tests.ControllersTests
                 Assert.AreEqual(ReplyResult, "error:6");
 
                 // Short body
-                Reply.Token = UserToReplyToken;
+                Reply.Token = usertoreplyToken;
                 Reply.Body = "12";
                 ReplyResult = PController.ReplyToPost(Reply);
                 Assert.AreEqual(ReplyResult, "error:4");
@@ -340,6 +340,7 @@ namespace Haverim.Tests.ControllersTests
                 Assert.AreEqual(ReplyResult, "error:5");
 
             }
+
         }
 
         [TestMethod]
@@ -355,7 +356,7 @@ namespace Haverim.Tests.ControllersTests
                 // Regiser post publisher and another user which will upvote the publisher's post
                 var RegisterRequest = new ApiClasses.RegisterUser
                 {
-                    Username = "Post Publisher",
+                    Username = "post publisher",
                     DisplayName = "SomeDisplayName",
                     Email = "example@mail.com",
                     Country = "United States",
@@ -365,7 +366,7 @@ namespace Haverim.Tests.ControllersTests
                     ProfilePic = "Url"
                 };
                 string PublisherToken = UController.RegisterUser(RegisterRequest);
-                RegisterRequest.Username = "Upvote User";
+                RegisterRequest.Username = "upvote user";
                 RegisterRequest.Email += "m";
                 string UpvoteUserToken = UController.RegisterUser(RegisterRequest);
 
@@ -395,11 +396,11 @@ namespace Haverim.Tests.ControllersTests
                 Assert.AreEqual("success", UpvoteResult);
 
                 var Post = db.Posts.Find(Guid.Parse(PostId));
-                var Publisher = db.Users.Find("Post Publisher");
-                var UpvoteUser = db.Users.Find("Upvote User");
+                var Publisher = db.Users.Find("post publisher");
+                var UpvoteUser = db.Users.Find("upvote user");
 
                 Assert.AreEqual(1, Post.UpvotedUsers.Count);
-                Assert.AreEqual("Upvote User", Post.UpvotedUsers[0]);
+                Assert.AreEqual("upvote user", Post.UpvotedUsers[0]);
 
                 Assert.AreEqual(1, Publisher.Notifications.Count);
                 Assert.AreEqual(NotificationType.UpvotePost, Publisher.Notifications[0].Type);
@@ -449,7 +450,7 @@ namespace Haverim.Tests.ControllersTests
                 // Regiser post publisher and another user which will upvote the publisher's post
                 var RegisterRequest = new ApiClasses.RegisterUser
                 {
-                    Username = "Post Publisher",
+                    Username = "post publisher",
                     DisplayName = "SomeDisplayName",
                     Email = "example@mail.com",
                     Country = "United States",
@@ -459,7 +460,7 @@ namespace Haverim.Tests.ControllersTests
                     ProfilePic = "Url"
                 };
                 string PublisherToken = UController.RegisterUser(RegisterRequest);
-                RegisterRequest.Username = "Upvote User";
+                RegisterRequest.Username = "upvote user";
                 RegisterRequest.Email += "m";
                 string UpvoteUserToken = UController.RegisterUser(RegisterRequest);
 
@@ -482,8 +483,8 @@ namespace Haverim.Tests.ControllersTests
                 });
 
                 var Post = db.Posts.Find(Guid.Parse(PostId));
-                var Publisher = db.Users.Find("Post Publisher");
-                var UpvoteUser = db.Users.Find("Upvote User");
+                var Publisher = db.Users.Find("post publisher");
+                var UpvoteUser = db.Users.Find("upvote user");
 
                 Assert.AreEqual(1, Post.UpvotedUsers.Count);
 
@@ -545,7 +546,7 @@ namespace Haverim.Tests.ControllersTests
 
                 var RegisterUser = new ApiClasses.RegisterUser
                 {
-                    Username = "Post Publisher",
+                    Username = "post publisher",
                     DisplayName = "SomeDisplayName",
                     Email = "example@mail.com",
                     Country = "United States",
@@ -555,7 +556,7 @@ namespace Haverim.Tests.ControllersTests
                     ProfilePic = "Url"
                 };
                 string PostPublisherToken = UController.RegisterUser(RegisterUser).Split(':')[1];
-                RegisterUser.Username = "Reply User"; RegisterUser.Email += "m";
+                RegisterUser.Username = "reply user"; RegisterUser.Email += "m";
                 string ReplyUserToken = UController.RegisterUser(RegisterUser).Split(':')[1];
 
                 string PostId = PController.CreatePost(new ApiClasses.CreatePost
@@ -566,8 +567,8 @@ namespace Haverim.Tests.ControllersTests
                 }).Split(':')[1];
 
                 var Post = db.Posts.Find(Guid.Parse(PostId));
-                var PostPublisher = db.Users.Find("Post Publisher");
-                var ReplyUser = db.Users.Find("Reply User");
+                var PostPublisher = db.Users.Find("post publisher");
+                var ReplyUser = db.Users.Find("reply user");
 
                 string CommentId = PController.ReplyToPost(new ApiClasses.CreateReply
                 {
@@ -589,7 +590,7 @@ namespace Haverim.Tests.ControllersTests
                     Assert.AreEqual("success", UpvoteResult);
                     Assert.AreEqual(1, Post.Comments[0].UpvotedUsers.Count);
                     Assert.AreEqual(1, ReplyUser.Notifications.Count);
-                    Assert.AreEqual("Post Publisher", ReplyUser.Notifications[0].TargetUsername);
+                    Assert.AreEqual("post publisher", ReplyUser.Notifications[0].TargetUsername);
                 }
 
                 // Upvote from another user
@@ -605,7 +606,7 @@ namespace Haverim.Tests.ControllersTests
                 Assert.AreEqual(2, Post.Comments[0].UpvotedUsers.Count);
                 Assert.AreEqual(2, ReplyUser.Notifications.Count);
                 Assert.AreEqual("Second User", ReplyUser.Notifications[0].TargetUsername);
-                Assert.AreEqual("Post Publisher", ReplyUser.Notifications[1].TargetUsername);
+                Assert.AreEqual("post publisher", ReplyUser.Notifications[1].TargetUsername);
 
                 /// Error tests
 
@@ -616,7 +617,7 @@ namespace Haverim.Tests.ControllersTests
             {
                 var RegisterUser = new ApiClasses.RegisterUser
                 {
-                    Username = "Post Publisher",
+                    Username = "post publisher",
                     DisplayName = "SomeDisplayName",
                     Email = "example@mail.com",
                     Country = "United States",
@@ -630,7 +631,7 @@ namespace Haverim.Tests.ControllersTests
                 var PController = new PostsController(db);
 
                 string PostPublisherToken = UController.RegisterUser(RegisterUser).Split(':')[1];
-                RegisterUser.Username = "Reply User2"; RegisterUser.Email += "mm";
+                RegisterUser.Username = "reply user2"; RegisterUser.Email += "mm";
                 string ReplyUserToken = UController.RegisterUser(RegisterUser).Split(':')[1];
 
                 string PostId = PController.CreatePost(new ApiClasses.CreatePost
@@ -694,7 +695,7 @@ namespace Haverim.Tests.ControllersTests
 
                 var RegisterUser = new ApiClasses.RegisterUser
                 {
-                    Username = "Post Publisher",
+                    Username = "post publisher",
                     DisplayName = "SomeDisplayName",
                     Email = "example@mail.com",
                     Country = "United States",
@@ -704,7 +705,7 @@ namespace Haverim.Tests.ControllersTests
                     ProfilePic = "Url"
                 };
                 string PostPublisherToken = UController.RegisterUser(RegisterUser).Split(':')[1];
-                RegisterUser.Username = "Reply User"; RegisterUser.Email += "m";
+                RegisterUser.Username = "reply user"; RegisterUser.Email += "m";
                 string ReplyUserToken = UController.RegisterUser(RegisterUser).Split(':')[1];
 
                 string PostId = PController.CreatePost(new ApiClasses.CreatePost
@@ -715,8 +716,8 @@ namespace Haverim.Tests.ControllersTests
                 }).Split(':')[1];
 
                 var Post = db.Posts.Find(Guid.Parse(PostId));
-                var PostPublisher = db.Users.Find("Post Publisher");
-                var ReplyUser = db.Users.Find("Reply User");
+                var PostPublisher = db.Users.Find("post publisher");
+                var ReplyUser = db.Users.Find("reply user");
 
                 string CommentId = PController.ReplyToPost(new ApiClasses.CreateReply
                 {

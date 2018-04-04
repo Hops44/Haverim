@@ -30,8 +30,8 @@ namespace Haverim
             services.AddDbContext<HaverimContext>(options => options.UseSqlServer(connection));
 #if DEBUG
             // If in debug mode create new mock database for tests
-            connection = @"Server=(localdb)\mssqllocaldb;Database=HaverimProjectMock;Trusted_Connection=True;ConnectRetryCount=0";
-            services.AddDbContext<HaverimContext>(options => options.UseSqlServer(connection));
+            //connection = @"Server=(localdb)\mssqllocaldb;Database=HaverimProjectMock;Trusted_Connection=True;ConnectRetryCount=0";
+            //services.AddDbContext<HaverimContext>(options => options.UseSqlServer(connection));
 #endif
             //Test
         }
@@ -45,14 +45,14 @@ namespace Haverim
                 app.UseWebpackDevMiddleware(new WebpackDevMiddlewareOptions
                 {
                     HotModuleReplacement = true,
-                    ReactHotModuleReplacement = true
+                    ReactHotModuleReplacement = true,
+                    HotModuleReplacementEndpoint= "hot"
                 });
             }
             else
             {
                 app.UseExceptionHandler("/Home/Error");
             }
-
             app.UseStaticFiles();
 
             app.UseMvc(routes =>
