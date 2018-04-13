@@ -73,7 +73,7 @@ export class FieldInput extends React.Component {
             Tags: getTags(this.state.text)
           })
         );
-        var split = result.substring(1, result.length - 1).split(":");
+        var split = result.split(":");
         if (split[0] == "error") {
           alert("There was an error sending that post\nerror " + split[1]);
         } else {
@@ -96,7 +96,6 @@ export class FieldInput extends React.Component {
               PostId: this.props.postId
             })
           );
-          result = result.substring(1, result.length - 1);
           var split = result.split(":");
           if (split[0] == "error") {
             //console.log(result);
@@ -104,7 +103,7 @@ export class FieldInput extends React.Component {
           }
 
           var user = JSON.parse(isLogged);
-          this.props.addFunction(user.Username, this.state.text, split[1]);
+          this.props.addFunction(user.username, this.state.text, split[1]);
           this.setState({ text: "", isExpanded: false });
         }
       }

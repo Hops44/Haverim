@@ -30,40 +30,36 @@ export class PostFeed extends React.Component {
       index: 0
     };
     var result = POST("/api/posts/GetPostFeed", JSON.stringify(body));
+    var hasError = result.split(":")[0] == "error";
+    if (hasError) {
+      console.log(result);
+      this.setState({ finishedLoading: true });
+      return;
+    }
 
-    //TODO: optimize
-    result = result.substring(1, result.length - 1);
-    result = result
-      .split("\\")
-      .join("")
-      .split('"[')
-      .join("[")
-      .split(']"')
-      .join("]");
-
-    var noError = result.split(":")[0] != "error";
-    var username = this.props.currentUser.Username;
-
+    var username = this.props.currentUser.username;
     var originElement = this;
+
     var posts = JSON.parse(result).map(
       function(value) {
-        var user = getUser(value.PublisherId);
+        var user = getUser(value.publisherId);
         if (user.length == 1) {
-          console.log("error:" + user);
-          user.DisplayName = "";
+          return;
         }
         return (
           <Post
-            currentUserProfilepic={this.props.currentUser.ProfilePic}
-            postId={value.Id}
-            displayName={user.DisplayName}
-            profilepic={user.ProfilePic}
-            username={value.PublisherId}
-            body={value.Body}
-            isUpvoted={value.UpvotedUsers.includes(username)}
-            unixTime={new Date(value.PublishDate).getTime() / 1000}
-            comments={value.Comments}
-            key={value.Id}
+            currentUserProfilepic={this.props.currentUser.profilePic}
+            currentUsername={this.props.currentUser.username}
+            postId={value.id}
+            displayName={user.displayName}
+            profilepic={user.profilePic}
+            username={value.publisherId}
+            body={value.body}
+            upvoteCount={value.upvotedUsers.length}
+            isUpvoted={value.upvotedUsers.includes(username)}
+            unixTime={new Date(value.publishDate).getTime() / 1000}
+            comments={value.comments}
+            key={value.id}
           />
         );
       }.bind(this)
@@ -80,12 +76,14 @@ export class PostFeed extends React.Component {
         body={body}
         unixTime={time}
         key={key}
+        upvoteCount={0}
       />
     );
     this.setState(prevState => ({
       postList: [postToAdd].concat(prevState.postList.slice())
     }));
   }
+
   formatTime(unix) {
     const now = Date.now() / 1000;
     const diff = Math.floor(now - unix);
@@ -140,10 +138,10 @@ export class PostFeed extends React.Component {
       <div>
         {!this.props.noFieldInput && (
           <FieldInput
-            username={this.props.currentUser.Username}
-            displayName={this.props.currentUser.DisplayName}
+            username={this.props.currentUser.username}
+            displayName={this.props.currentUser.displayName}
             addFunction={this.addPostToFeed}
-            profilepic={this.props.currentUser.ProfilePic}
+            profilepic={this.props.currentUser.profilePic}
             isPost={true}
           />
         )}

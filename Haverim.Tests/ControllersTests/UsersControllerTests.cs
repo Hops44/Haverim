@@ -317,8 +317,6 @@ namespace Haverim.Tests
                 UnFollowRequstResult = UController.UnFollowUser(Request);
 
                 Assert.AreEqual(UnFollowRequstResult, "error:5");
-
-
             }
         }
 
@@ -363,22 +361,22 @@ namespace Haverim.Tests
                 User.Notifications = FakeNotificationList;
                 db.SaveChanges();
 
-                string GetNotificationResult = UController.GetNotifications(new Controllers.Helpers.ApiClasses.FeedRequest
+                string GetNotificationResult = JsonConvert.SerializeObject(UController.GetNotifications(new Controllers.Helpers.ApiClasses.FeedRequest
                 {
                     Token = UserToken,
                     index = 0
-                });
+                }).Value);
 
                 Assert.AreNotEqual("error", GetNotificationResult.Split(':')[0]);
 
                 List<Notification> NotificationList = JsonConvert.DeserializeObject<Notification[]>(GetNotificationResult).ToList();
                 Assert.AreEqual(10, NotificationList.Count);
 
-                GetNotificationResult = UController.GetNotifications(new Controllers.Helpers.ApiClasses.FeedRequest
+                GetNotificationResult = JsonConvert.SerializeObject(UController.GetNotifications(new Controllers.Helpers.ApiClasses.FeedRequest
                 {
                     Token = UserToken,
                     index = 10
-                });
+                }).Value);
 
                 Assert.AreNotEqual("error", GetNotificationResult.Split(':')[0]);
 
@@ -408,21 +406,21 @@ namespace Haverim.Tests
                     Token = NonExistingToken
                 };
 
-                GetNotificationResult = UController.GetNotifications(Request);
-                Assert.AreEqual("error:0", GetNotificationResult);
+                GetNotificationResult = JsonConvert.SerializeObject(UController.GetNotifications(Request).Value);
+                Assert.AreEqual("\"error:0\"", GetNotificationResult);
 
                 Request.Token = null;
-                GetNotificationResult = UController.GetNotifications(Request);
-                Assert.AreEqual("error:5", GetNotificationResult);
+                GetNotificationResult = JsonConvert.SerializeObject(UController.GetNotifications(Request).Value);
+                Assert.AreEqual("\"error:5\"", GetNotificationResult);
 
                 Request.Token = UserToken + ".";
-                GetNotificationResult = UController.GetNotifications(Request);
-                Assert.AreEqual("error:6", GetNotificationResult);
+                GetNotificationResult = JsonConvert.SerializeObject(UController.GetNotifications(Request).Value);
+                Assert.AreEqual("\"error:6\"", GetNotificationResult);
 
                 Request.Token = UserToken;
                 Request.index = 17;
-                GetNotificationResult = UController.GetNotifications(Request);
-                Assert.AreEqual("error:7", GetNotificationResult);
+                GetNotificationResult = JsonConvert.SerializeObject(UController.GetNotifications(Request).Value);
+                Assert.AreEqual("\"error:7\"", GetNotificationResult);
             }
         }
 
@@ -445,8 +443,10 @@ namespace Haverim.Tests
                     Country = "United States",
                     ProfilePic = "SomeUrl"
                 });
+                Console.WriteLine(UController);
+                UController.GetUser("test user");
 
-                string GetUserResult = UController.GetUser("test user");
+                string GetUserResult = JsonConvert.SerializeObject(UController.GetUser("test user").Value);
                 Assert.AreNotEqual("error", GetUserResult.Split(':'));
                 var User = JsonConvert.DeserializeObject<ApiClasses.PublicUserData>(GetUserResult);
 
@@ -455,11 +455,11 @@ namespace Haverim.Tests
                 Assert.AreEqual(0, User.FollowersCount);
 
                 // Error tests
-                GetUserResult = UController.GetUser("None Existing");
-                Assert.AreEqual("error:0", GetUserResult);
+                GetUserResult = JsonConvert.SerializeObject(UController.GetUser("None Existing").Value);
+                Assert.AreEqual("\"error:0\"", GetUserResult);
 
-                GetUserResult = UController.GetUser(null);
-                Assert.AreEqual("error:5", GetUserResult);
+                GetUserResult = JsonConvert.SerializeObject(UController.GetUser(null).Value);
+                Assert.AreEqual("\"error:5\"", GetUserResult);
             }
         }
 
@@ -491,7 +491,7 @@ namespace Haverim.Tests
                 db.SaveChanges();
 
                 // Get Following
-                string GetResult = UController.GetUserFollowers("test user", false);
+                string GetResult = JsonConvert.SerializeObject(UController.GetUserFollowers("test user", false).Value);
                 Assert.AreNotEqual("error", GetResult.Split(':')[0]);
 
                 List<string> Following = JsonConvert.DeserializeObject<List<string>>(GetResult);
@@ -500,7 +500,7 @@ namespace Haverim.Tests
                     Assert.AreEqual((i + 1).ToString(), Following[i]);
                 }
 
-                GetResult = UController.GetUserFollowers("test user", true);
+                GetResult = JsonConvert.SerializeObject(UController.GetUserFollowers("test user", true).Value);
                 Assert.AreNotEqual("error", GetResult.Split(':')[0]);
 
                 List<string> Followers = JsonConvert.DeserializeObject<List<string>>(GetResult);
@@ -509,10 +509,10 @@ namespace Haverim.Tests
                     Assert.AreEqual((i + 1).ToString(), Following[i]);
                 }
                 // Error tests
-                GetResult = UController.GetUserFollowers(null, false);
-                Assert.AreEqual("error:5", GetResult);
-                GetResult = UController.GetUserFollowers("None Existing", false);
-                Assert.AreEqual("error:0", GetResult);
+                GetResult = JsonConvert.SerializeObject(UController.GetUserFollowers(null, false).Value);
+                Assert.AreEqual("\"error:5\"", GetResult);
+                GetResult = JsonConvert.SerializeObject(UController.GetUserFollowers("None Existing", false).Value);
+                Assert.AreEqual("\"error:0\"", GetResult);
             }
         }
     }

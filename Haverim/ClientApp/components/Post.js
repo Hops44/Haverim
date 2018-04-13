@@ -12,6 +12,8 @@ class Post extends React.PureComponent {
       isUpvoted: this.props.isUpvoted ? this.props.isUpvoted : false,
       modalVisibility: false,
       quickReplyVisibility: false,
+      upvoteCount: this.props.upvoteCount,
+      commentCount: this.props.comments ? this.props.comments.length : 0,
       currentUnixTime: Date.now() / 1000
     };
     this.upvoteClick = this.upvoteClick.bind(this);
@@ -20,7 +22,13 @@ class Post extends React.PureComponent {
     this.closeQuickReply = this.closeQuickReply.bind(this);
     this.formatTime = this.formatTime.bind(this);
     this.generateText = this.generateText.bind(this);
-    console.log('shalom');
+    this.incrementCommentCount = this.incrementCommentCount.bind(this);
+  }
+
+  incrementCommentCount() {
+    this.setState(prevState => ({
+      commentCount: prevState.commentCount + 1
+    }));
   }
 
   openQuickReply() {
@@ -41,6 +49,9 @@ class Post extends React.PureComponent {
     );
 
     this.setState(prevState => ({
+      upvoteCount: prevState.isUpvoted
+        ? prevState.upvoteCount - 1
+        : prevState.upvoteCount + 1,
       isUpvoted: !prevState.isUpvoted
     }));
   }
@@ -54,7 +65,7 @@ class Post extends React.PureComponent {
     const now = this.state.currentUnixTime;
     const diff = Math.floor(now - this.props.unixTime);
 
-    if (diff < 60) return Math.floor(diff) + "s";
+    if (diff < 60) return "less than a minute ago";
     else if (diff < 3600) return Math.floor(diff / 60) + "m";
     else if (diff < 86400) return Math.floor(diff / 3600) + "h";
     else if (diff < 2629743) return Math.floor(diff / 86400) + "d";
@@ -138,13 +149,12 @@ class Post extends React.PureComponent {
           <p onClick={this.openPostModal} className="post-body noselect">
             {this.props.body}
           </p>
-          {/* <div
-            onClick={() => this.setState({ modalVisibility: true })}
-            className="post-split"
-          >
-            <div className="post-split-content" />
-          </div> */}
           <div className="post-social-icons">
+            <div className="post-upvote-count-container">
+              <p className="post-upvote-count noselect">
+                {this.state.upvoteCount}
+              </p>
+            </div>
             <img
               onClick={this.upvoteClick}
               className="social-icon"
@@ -154,20 +164,26 @@ class Post extends React.PureComponent {
                   : "/Assets/upvote.svg"
               }
             />
-            <img
-              onClick={this.openQuickReply}
-              className="social-icon"
-              src="/Assets/quick-reply.svg"
-            />
+            <div className="post-upvote-count-container">
+              <p className="post-upvote-count noselect">
+                {this.state.commentCount}
+              </p>
+            </div>
             <img
               onClick={this.openPostModal}
               className="social-icon"
               src="/Assets/reply.svg"
             />
+            <img
+              onClick={this.openQuickReply}
+              className="social-icon"
+              src="/Assets/quick-reply.svg"
+            />
           </div>
         </div>
         {this.state.modalVisibility && (
           <Modal
+            upvoteCount={this.state.upvoteCount}
             displayName={this.props.displayName}
             username={this.props.username}
             profilepic={this.props.profilepic}
@@ -177,7 +193,9 @@ class Post extends React.PureComponent {
             upvoteFunction={this.upvoteClick}
             comments={this.props.comments}
             postId={this.props.postId}
+            currentUsername={this.props.currentUsername}
             currentUserProfilepic={this.props.currentUserProfilepic}
+            incrementCommentCount={this.incrementCommentCount}
           />
         )}
         {this.state.quickReplyVisibility && (

@@ -2,14 +2,15 @@
   background-color: #f2994a;
   width: 100%;
   display: grid;
-  grid-template-columns: [not]50px [inb]50px [hdr]auto[propic] 50px;
+  grid-template-columns: 50px 50px calc(100vw - 200px) 100px;
   overflow: hidden;
+  position: relative;
 }
 
 .notification-img {
   width: 40px;
   height: 40px;
-  grid-column: not;
+  grid-column: 1;
   margin-top: 4px;
   cursor: pointer;
 }
@@ -17,7 +18,7 @@
   width: 40px;
   height: 40px;
   margin-top: 4px;
-  grid-column: inb;
+  grid-column: 2;
   cursor: pointer;
 }
 .haverim-header-container {
@@ -28,19 +29,20 @@
   color: white;
   font-size: 38px;
   text-align: center;
-  grid-column: [hdr];
+  grid-column: 3;
   cursor: pointer;
   margin: 0;
   display: inline-block;
-  margin-right: 50px;
 }
 .profile-img {
   width: 40px;
   height: 40px;
   border-radius: 100%;
   margin-top: 4px;
-  grid-column: propic;
+  grid-column: 4;
   cursor: pointer;
+  position: absolute;
+  right: 10px;
 
   -webkit-box-shadow: 0 0 0px 2px #fff;
   -moz-box-shadow: 0 0 0px 2px #fff;

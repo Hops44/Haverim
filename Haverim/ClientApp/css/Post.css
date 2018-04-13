@@ -70,6 +70,7 @@
   color: black;
   margin: 0;
   display: inline;
+  text-decoration: none;
 }
 .post-body {
   color: #4f4f4f;
@@ -84,7 +85,7 @@
 }
 
 .post-social-icons {
-  grid-row: 4;
+  grid-row: 3;
   grid-column: 1/4;
   padding-right: 10px;
   z-index: 1;
@@ -100,6 +101,32 @@
   margin-top: 0px;
   margin-left: 20px;
   z-index: -1;
+}
+.social-icon:nth-child(2) {
+  margin-left: 15px;
+}
+.social-icon:nth-child(2):hover {
+  margin-left: 10px;
+}
+.post-upvote-count-container {
+  margin: 0;
+  height: 25px;
+  padding-left: 10px;
+  grid-row: 3;
+  float: right;
+  cursor: pointer;
+  padding-right: 5px;
+}
+.post-upvote-count {
+  font-size: 22px;
+  grid-column: 1/4;
+  font-family: "Quicksand";
+  color: #f2994a;
+  opacity: 0.7;
+  margin: 0;
+}
+.post-upvote-count:hover {
+  opacity: 1;
 }
 .social-icon:hover {
   opacity: 1;

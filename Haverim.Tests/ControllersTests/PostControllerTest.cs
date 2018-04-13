@@ -174,10 +174,10 @@ namespace Haverim.Tests.ControllersTests
                 var Publisher = db.Users.Find("test user");
                 var Follower = db.Users.Find("Follower User");
 
-                string PostFeedResult = PController.GetPostFeed(new ApiClasses.FeedRequest
+                string PostFeedResult = JsonConvert.SerializeObject(PController.GetPostFeed(new ApiClasses.FeedRequest
                 {
                     Token = FollowerToken
-                });
+                }).Value);
                 Assert.AreNotEqual(PostFeedResult.Split(':')[0], "error");
 
                 List<Post> PostFeed = JsonConvert.DeserializeObject<Post[]>(PostFeedResult).ToList();
@@ -185,11 +185,11 @@ namespace Haverim.Tests.ControllersTests
                 Assert.AreEqual(PostFeed.Count, 10);
 
                 // Get next 7 posts
-                PostFeedResult = PController.GetPostFeed(new ApiClasses.FeedRequest
+                PostFeedResult = JsonConvert.SerializeObject(PController.GetPostFeed(new ApiClasses.FeedRequest
                 {
                     Token = FollowerToken,
                     index = 10
-                });
+                }).Value);
                 List<Post> TempPostFeed = JsonConvert.DeserializeObject<Post[]>(PostFeedResult).ToList();
                 Assert.AreEqual(TempPostFeed.Count, 7);
 
@@ -212,22 +212,22 @@ namespace Haverim.Tests.ControllersTests
                 });
                 var FeedRequest = new ApiClasses.FeedRequest { Token = NonExistingUserToken };
 
-                PostFeedResult = PController.GetPostFeed(FeedRequest);
-                Assert.AreEqual("error:0", PostFeedResult);
+                PostFeedResult = JsonConvert.SerializeObject(PController.GetPostFeed(FeedRequest).Value);
+                Assert.AreEqual("\"error:0\"", PostFeedResult);
 
                 FeedRequest.Token = null;
                 FeedRequest.index = 0;
-                PostFeedResult = PController.GetPostFeed(FeedRequest);
-                Assert.AreEqual("error:5", PostFeedResult);
+                PostFeedResult = JsonConvert.SerializeObject(PController.GetPostFeed(FeedRequest).Value);
+                Assert.AreEqual("\"error:5\"", PostFeedResult);
 
                 FeedRequest.Token = FollowerToken + ".";
-                PostFeedResult = PController.GetPostFeed(FeedRequest);
-                Assert.AreEqual("error:6", PostFeedResult);
+                PostFeedResult = JsonConvert.SerializeObject(PController.GetPostFeed(FeedRequest).Value);
+                Assert.AreEqual("\"error:6\"", PostFeedResult);
 
                 FeedRequest.index = 17;
                 FeedRequest.Token = FollowerToken;
-                PostFeedResult = PController.GetPostFeed(FeedRequest);
-                Assert.AreEqual("error:7", PostFeedResult);
+                PostFeedResult = JsonConvert.SerializeObject(PController.GetPostFeed(FeedRequest).Value);
+                Assert.AreEqual("\"error:7\"", PostFeedResult);
             }
         }
 

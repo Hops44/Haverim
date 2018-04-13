@@ -5,7 +5,6 @@ import { PostFeed } from "./PostFeed";
 import { FriendsList } from "./FriendsList";
 import { FriendListItem } from "./FriendsList";
 import "../css/MainPage.css";
-// import "./jquery-3.3.1.min";
 import { POST, GET } from "../RestMethods";
 import { Redirect, Route, Link } from "react-router-dom";
 
@@ -16,12 +15,10 @@ export function checkIfLogged() {
   var payload = `{"key":"${JWTkey}"}`;
   var url = "/api/users/GetUserByToken";
   var result = POST(url, payload);
-
   // User Logged In
-  if (result.split(":")[0] == '"success') {
-    result = result.substring(9, result.length - 1);
+  if (result.split(":")[0] !== '"error') {
     console.log("%c You're okay! ", "background: #222; color: #bada55");
-    result = result.split("\\").join("");
+
     //User is not logged in, redirect to login page
     return result;
   } else {
@@ -42,16 +39,21 @@ export class MainPage extends React.Component {
     this.state = {
       screenWidth: width,
       isLoggedIn: isLoggedIn,
-      currentUser: JSON.parse(isLoggedIn)
+      currentUser: JSON.parse(isLoggedIn),
+      isModalOpen: false
     };
+    this.switchValue = 1000;
 
     this.getScreenWidth = this.getScreenWidth.bind(this);
-
+    this.toggleModal = this.toggleModal.bind(this);
     window.addEventListener("resize", this.getScreenWidth);
   }
 
   componentWillUnmount() {
     window.removeEventListener("resize", this.getScreenWidth);
+  }
+  toggleModal(state) {
+    this.setState({ isModalOpen: state });
   }
 
   getScreenWidth() {
@@ -66,27 +68,36 @@ export class MainPage extends React.Component {
       <Redirect to="/login" />
     ) : (
       <div className="main-page">
-        <Navbar profilepic={this.state.currentUser.ProfilePic} />
-        <div className="main-page-content">
-          {this.state.screenWidth > 1000 && (
+        <Navbar profilepic={this.state.currentUser.profilePic} />
+        <div
+          className={
+            this.state.isModalOpen
+              ? "main-page-content Scrollbar noscroll"
+              : "main-page-content Scrollbar"
+          }
+        >
+          {this.state.screenWidth > this.switchValue && (
             <div className="main-page-user-profile">
               <Profile
-                username={this.state.currentUser.Username}
-                displayName={this.state.currentUser.DisplayName}
-                following={this.state.currentUser.Following.length}
-                followers={this.state.currentUser.Followers.length}
-                profilepic={this.state.currentUser.ProfilePic}
+                toggleModal={this.toggleModal}
+                username={this.state.currentUser.username}
+                displayName={this.state.currentUser.displayName}
+                following={this.state.currentUser.following.length}
+                followers={this.state.currentUser.followers.length}
+                profilepic={this.state.currentUser.profilePic}
               />
             </div>
           )}
           <div
             className={
-              this.state.screenWidth > 1000 ? "main-page-input-posts" : "full"
+              this.state.screenWidth > this.switchValue
+                ? "main-page-input-posts"
+                : "full"
             }
           >
             <PostFeed currentUser={this.state.currentUser} />
           </div>
-          {this.state.screenWidth > 1000 && (
+          {this.state.screenWidth > this.switchValue && (
             <div className="main-page-friends-list">
               {" "}
               <FriendsList

@@ -48,6 +48,8 @@ namespace Haverim.Controllers
                 foreach (string Tag in Post.Tags)
                 {
                     User Tagged = this._context.Users.Find(Tag);
+                    if (Tagged.Username == Publisher.Username)
+                        continue;
                     if (Tagged != null)
                     {
                         var TaggedNotifications = Tagged.Notifications;
@@ -121,22 +123,22 @@ namespace Haverim.Controllers
         }
 
         [HttpPost("[Action]")]
-        public string GetPostFeed([FromBody] ApiClasses.FeedRequest request)
+        public JsonResult GetPostFeed([FromBody] ApiClasses.FeedRequest request)
         {
             if (String.IsNullOrWhiteSpace(request.Token))
-                return "error:5";
+                return Json("error:5");
             (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) = Helpers.JWT.VerifyToken(request.Token);
 
             if (Status != Helpers.JWT.TokenStatus.Valid)
-                return "error:6";
+                return Json("error:6");
             var User = this._context.Users.Find(Payload.Username);
             if (User == null)
-                return "error:0";
+                return Json("error:0");
 
             List<string> UserPostFeed = User.PostFeed;
             int FeedCount = UserPostFeed.Count();
             if (request.index >= FeedCount)
-                return "error:7";
+                return Json("error:7");
 
             Post[] RequestedPosts;
 
@@ -164,7 +166,7 @@ namespace Haverim.Controllers
                     PostsIndexer++;
                 }
             }
-            return JsonConvert.SerializeObject(RequestedPosts);
+            return Json(RequestedPosts);
         }
 
         [HttpPost("[Action]")]
@@ -207,29 +209,35 @@ namespace Haverim.Controllers
             //this._context.Posts.Attach(Post);
 
             User PostPublisher = this._context.Users.Find(Post.PublisherId);
-            var PostPublisherNoitifications = PostPublisher.Notifications;
-            if (PostPublisherNoitifications == null)
-                PostPublisherNoitifications = new List<Notification>();
-
-            PostPublisherNoitifications.Insert(0, new Notification
+            if (PostPublisher.Username != Payload.Username)
             {
-                PostId = Post.Id,
-                PublishDate = PublishTime,
-                Type = NotificationType.Reply,
-                TargetUsername = Payload.Username
-            });
-            PostPublisher.Notifications = PostPublisherNoitifications;
+                var PostPublisherNoitifications = PostPublisher.Notifications;
+                if (PostPublisherNoitifications == null)
+                    PostPublisherNoitifications = new List<Notification>();
 
-            if (ReplyingUser.ActivityFeed == null)
-                ReplyingUser.ActivityFeed = new List<Activity>();
+                PostPublisherNoitifications.Insert(0, new Notification
+                {
+                    PostId = Post.Id,
+                    PublishDate = PublishTime,
+                    Type = NotificationType.Reply,
+                    TargetUsername = Payload.Username
+                });
+                PostPublisher.Notifications = PostPublisherNoitifications;
 
-            ReplyingUser.ActivityFeed.Insert(0, new Activity
+                if (ReplyingUser.ActivityFeed == null)
+                    ReplyingUser.ActivityFeed = new List<Activity>();
+            }
+            List<Activity> ReplyingUserActivityFeed = ReplyingUser.ActivityFeed;
+            if (ReplyingUserActivityFeed == null)
+                ReplyingUserActivityFeed = new List<Activity>();
+
+            ReplyingUserActivityFeed.Insert(0, new Activity
             {
                 PostId = Post.Id,
                 Type = ActivityType.Reply
             });
+            ReplyingUser.ActivityFeed = ReplyingUserActivityFeed;
 
-            //this._context.Users.Attach(PostPublisher);
             this._context.SaveChanges();
 
             return $"success:{CommentId}";
@@ -270,23 +278,25 @@ namespace Haverim.Controllers
             });
 
             var PostPublisher = this._context.Users.Find(Post.PublisherId);
-            var PostPublisherNotifications = PostPublisher.Notifications;
-
-            Notification ToAdd = new Notification
+            if (PostPublisher.Username != Payload.Username)
             {
-                PostId = Post.Id,
-                PublishDate = DateTime.Now,
-                Type = NotificationType.UpvotePost,
-                TargetUsername = PostUpvoter.Username
-            };
+                var PostPublisherNotifications = PostPublisher.Notifications;
 
-            if (PostPublisherNotifications == null)
-                PostPublisherNotifications = new List<Notification> { ToAdd };
-            else
-                PostPublisherNotifications.Insert(0, ToAdd);
+                Notification ToAdd = new Notification
+                {
+                    PostId = Post.Id,
+                    PublishDate = DateTime.Now,
+                    Type = NotificationType.UpvotePost,
+                    TargetUsername = PostUpvoter.Username
+                };
 
-            PostPublisher.Notifications = PostPublisherNotifications;
+                if (PostPublisherNotifications == null)
+                    PostPublisherNotifications = new List<Notification> { ToAdd };
+                else
+                    PostPublisherNotifications.Insert(0, ToAdd);
 
+                PostPublisher.Notifications = PostPublisherNotifications;
+            }
             this._context.SaveChanges();
             return "success";
         }
@@ -361,21 +371,23 @@ namespace Haverim.Controllers
             Post.Comments = PostComments;
 
             var CommentPublisher = this._context.Users.Find(TargetComment.PublisherId);
-
-            var NotificationToInsert = new Notification
+            if (CommentPublisher.Username != Payload.Username)
             {
-                PostId = Post.Id,
-                PublishDate = DateTime.Now,
-                Type = NotificationType.UpvoteComment,
-                TargetUsername = Payload.Username
-            };
-            var Notifications = CommentPublisher.Notifications;
-            if (Notifications == null)
-                Notifications = new List<Notification> { NotificationToInsert };
-            else
-                Notifications.Insert(0, NotificationToInsert);
-            CommentPublisher.Notifications = Notifications;
 
+                var NotificationToInsert = new Notification
+                {
+                    PostId = Post.Id,
+                    PublishDate = DateTime.Now,
+                    Type = NotificationType.UpvoteComment,
+                    TargetUsername = Payload.Username
+                };
+                var Notifications = CommentPublisher.Notifications;
+                if (Notifications == null)
+                    Notifications = new List<Notification> { NotificationToInsert };
+                else
+                    Notifications.Insert(0, NotificationToInsert);
+                CommentPublisher.Notifications = Notifications;
+            }
             this._context.SaveChanges();
             return "success";
         }
@@ -416,17 +428,17 @@ namespace Haverim.Controllers
         }
 
         [HttpPost("[Action]")]
-        public string GetCommentsFromPost([FromBody]ApiClasses.PostCommentsRequest request)
+        public JsonResult GetCommentsFromPost([FromBody]ApiClasses.PostCommentsRequest request)
         {
             if (String.IsNullOrWhiteSpace(request.Token) || String.IsNullOrWhiteSpace(request.PostId))
-                return "error:5";
+                return Json("error:5");
             (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) = Helpers.JWT.VerifyToken(request.Token);
             if (Status != Helpers.JWT.TokenStatus.Valid)
-                return "error:6";
+                return Json("error:6");
             var Post = _context.Posts.Find(Guid.Parse(request.PostId));
             if (Post == null)
-                return "error:1";
-            return JsonConvert.SerializeObject(Post.Comments);
+                return Json("error:1");
+            return Json(Post.Comments);
         }
     }
 }

@@ -11,7 +11,8 @@ class Modal extends React.Component {
     this.state = {
       comments: this.getComments(),
       modalWillClose: false,
-      isUpvoted: this.props.isUpvoted
+      isUpvoted: this.props.isUpvoted,
+      upvoteCount: this.props.upvoteCount
     };
     this.getComments();
     this.upvoteClick = this.upvoteClick.bind(this);
@@ -26,10 +27,9 @@ class Modal extends React.Component {
         PostId: this.props.postId
       })
     );
-    result = result.substring(1, result.length - 1);
     var split = result.split(":");
     if (split[0] != "error") {
-      return JSON.parse(result.split("\\").join(""));
+      return JSON.parse(result);
     }
     console.log(result, sessionStorage.getItem("jwtkey"), this.props.postId);
     return [];
@@ -46,22 +46,30 @@ class Modal extends React.Component {
           >
             <img className="modal-profile-image" src={this.props.profilepic} />
             <div className="modal-user-info-container">
-              <p className="modal-displayname">{this.props.displayName}</p>
-              <p className="modal-label">{this.props.username}</p>
+              <p className="modal-displayname Link">{this.props.displayName}</p>
+              <p className="modal-label Link">{this.props.username}</p>
             </div>
           </Link>
           <hr className="modal-split" />
           <p className="modal-body">{this.props.body}</p>
           <div className="modal-social-icon-container">
-            <img
-              onClick={this.upvoteClick}
-              className="social-icon"
-              src={
-                this.state.isUpvoted
-                  ? "/Assets/upvote-filled.svg"
-                  : "/Assets/upvote.svg"
-              }
-            />
+            <div className="modal-upvote-icon-container">
+              <img
+                onClick={this.upvoteClick}
+                className="social-icon"
+                src={
+                  this.state.isUpvoted
+                    ? "/Assets/upvote-filled.svg"
+                    : "/Assets/upvote.svg"
+                }
+                style={{ marginBottom: "-3px" }}
+              />
+            </div>
+            <div className="modal-upvote-count-container">
+              <p className="modal-upvote-count noselect">
+                {this.state.upvoteCount}
+              </p>
+            </div>
           </div>
           <hr className="modal-split" />
           <FieldInput
@@ -71,7 +79,11 @@ class Modal extends React.Component {
             addFunction={this.addComment}
             profilepic={this.props.currentUserProfilepic}
           />
-          <CommentsList comments={this.state.comments} />
+          <CommentsList
+            currentUsername={this.props.currentUsername}
+            postId={this.props.postId}
+            comments={this.state.comments}
+          />
         </div>
       </div>
     );
@@ -80,15 +92,19 @@ class Modal extends React.Component {
   upvoteClick() {
     this.props.upvoteFunction();
     this.setState(prevState => ({
+      upvoteCount: prevState.isUpvoted
+        ? prevState.upvoteCount - 1
+        : prevState.upvoteCount + 1,
       isUpvoted: !prevState.isUpvoted
     }));
   }
   addComment(username, body, commentId) {
+    this.props.incrementCommentCount();
     const commentToAdd = {
-      Body: body,
-      Id: commentId,
-      PublishDate: new Date(),
-      PublisherId: username
+      body: body,
+      id: commentId,
+      publishDate: new Date(),
+      publisherId: username
     };
     this.setState(prevState => ({
       comments: prevState.comments.concat(commentToAdd)

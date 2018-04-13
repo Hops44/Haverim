@@ -24,6 +24,7 @@
   text-align: center;
   cursor: pointer;
 }
+
 .following-container {
   grid-column: 2;
   grid-row: 4;
@@ -48,14 +49,26 @@
   font-size: 25px;
   color: #f2994a;
   margin: 0;
+  margin-top: 6px;
+  opacity: 0.6;
+  transition: font-size 100ms, margin-top 100ms, opacity 100ms;
 }
-
+.followers-container:hover > .follow-count-label {
+  font-size: 35px;
+  margin-top: -4px;
+  opacity: 1;
+}
+.following-container:hover > .follow-count-label {
+  font-size: 35px;
+  margin-top: -4px;
+  opacity: 1;
+}
 .followers-modal-background {
-  width: 100vw;
-  height: 100vh;
-  background-color: rgba(0, 0, 0, 0.418);
-  z-index: 4;
   position: fixed;
+  background-color: rgba(128, 128, 128, 0.425);
+  height: 100%;
+  width: 100%;
+  z-index: 2;
   top: 0;
   left: 0;
 }
@@ -69,11 +82,14 @@
   font-family: Arial, Helvetica, sans-serif;
   z-index: 5;
   left: calc(50% - 200px);
+  top: 30px;
+  overflow-y: scroll;
 }
 .followers-modal-header {
   width: 100%;
   text-align: center;
   margin-top: 10px;
+  opacity: 0.6;
 }
 .followers-modal-split {
   height: 1px;
@@ -84,6 +100,8 @@
 .followers-modal-list {
   width: 100%;
   padding: 0;
+  margin-top: 0;
+  height: calc(100% - 400px);
 }
 .followers-modal-list-item {
   border-bottom: 1px solid rgb(201, 201, 201);
@@ -125,4 +143,26 @@
   grid-row: 2;
   display: inline-block;
   color: #bdbdbd;
+  margin: 0;
+}
+.followers-modal-load-button {
+  width: 100%;
+  border: none;
+  height: 70px;
+  background-color: white;
+  font-size: 30px;
+  cursor: pointer;
+  margin-top: 5px;
+  box-shadow: inset 0px -1px 10px rgb(197, 197, 197);
+  transition: background-color 250ms;
+  color: #606060;
+}
+.followers-modal-load-button:hover {
+  background-color: rgba(230, 183, 141, 0.151);
+}
+.followers-modal-loading-header {
+  text-align: center;
+  color: #606060;
+  font-size: 30px;
+  margin: 20px 0;
 }

@@ -9,7 +9,7 @@ body {
   margin: 0;
 }
 #centerrr {
-  left: 50%;
+  left: 50vw;
   top: 0;
   width: 1px;
   height: 100%;
@@ -37,9 +37,34 @@ body {
   -ms-filter: blur(var(--blur-amount));
   filter: blur(var(--blur-amount));
 }
+.Link {
+  text-decoration: none;
+}
 .Link:hover {
   text-decoration: underline rgb(218, 218, 218);
 }
 .ProfilePicture:hover {
   opacity: 0.9;
+}
+
+.Scrollbar {
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+.Scrollbar::-webkit-scrollbar {
+  width: 10px;
+}
+/* Track */
+.Scrollbar::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+/* Handle */
+.Scrollbar::-webkit-scrollbar-thumb {
+  background: #f2984a52;
+  cursor: pointer;
+}
+/* Handle on hover */
+.Scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #f2984a8f;
 }

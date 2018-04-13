@@ -34,7 +34,7 @@ export class Notification extends React.PureComponent {
     return (
       <p style={{ color: "#828282" }} className="notification-text">
         <b style={{ color: "#4F4F4F", fontWeight: "300" }}>
-          {getUser(this.props.username).DisplayName}
+          {getUser(this.props.username).displayName}
         </b>{" "}
         {text}
       </p>

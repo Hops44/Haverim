@@ -156,6 +156,13 @@ namespace Haverim.Controllers.Helpers
             public string Key;
         }
 
+        public class BasicUserData
+        {
+            public string DisplayName;
+            public string Username;
+            public string ProfilePic;
+        }
+
         public class PostCommentsRequest
         {
             public string Token;

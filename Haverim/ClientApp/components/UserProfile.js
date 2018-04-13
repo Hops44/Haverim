@@ -1,6 +1,6 @@
 import React from "react";
 import "../css/UserProfile.css";
-import { GET } from "../RestMethods";
+import { GET, GETAsync } from "../RestMethods";
 import { getUser } from "../GlobalRequests";
 import { Link } from "react-router-dom";
 
@@ -9,28 +9,14 @@ class Profile extends React.PureComponent {
     super(props);
     this.state = {
       modalOpen: false,
-      followers: [],
       lastRequestFollowers: null
     };
     this.followersModal = this.followersModal.bind(this);
     this.closeModal = this.closeModal.bind(this);
   }
   followersModal(followers) {
-    var result = GET(
-      `api/users/GetUserFollowers/${this.props.username}/${followers}`
-    );
-    result = result
-      .substring(1, result.length - 1)
-      .split("\\")
-      .join("");
-    if (result.split(":")[0] == "error") {
-      console.log(result);
-      return;
-    }
-    result = JSON.parse(result);
     this.setState({
       modalOpen: true,
-      followers: result,
       lastRequestFollowers: followers
     });
   }
@@ -42,22 +28,34 @@ class Profile extends React.PureComponent {
       <div className="profile-container">
         {this.state.modalOpen && (
           <FollowersModal
-            close={this.closeModal}
+            close={() => {
+              this.closeModal();
+              this.props.toggleModal(false);
+            }}
             followers={this.state.lastRequestFollowers}
-            users={this.state.followers}
+            username={this.props.username}
+            isFollowers={this.state.lastRequestFollowers}
           />
         )}
         <img className="profile-image" src={this.props.profilepic} />
-        <p className="username-label noselect">{this.props.displayName}</p>
+        <Link className="username-label noselect Link" to={"/profile"}>
+          {this.props.displayName}
+        </Link>
         <div
-          onClick={() => this.followersModal(true)}
+          onClick={() => {
+            this.followersModal(true);
+            this.props.toggleModal(true);
+          }}
           className="followers-container noselect"
         >
           <p className="follow-label">Followers</p>
           <p className="follow-count-label">{this.props.followers}</p>
         </div>
         <div
-          onClick={() => this.followersModal(false)}
+          onClick={() => {
+            this.followersModal(false);
+            this.props.toggleModal(true);
+          }}
           className="following-container noselect"
         >
           <p className="follow-label">Following</p>
@@ -69,33 +67,71 @@ class Profile extends React.PureComponent {
 }
 export default Profile;
 
-class FollowersModal extends React.Component {
+function fakeGetUsers(index) {
+  var length = 0;
+  var arr = [];
+  if (index + 10 >= length) {
+    if (index >= length) {
+      return false;
+    }
+    for (let i = 0; i < length - index; i++) {
+      arr.push({
+        profilePic:
+          "https://www.ienglishstatus.com/wp-content/uploads/2018/04/Anonymous-Whatsapp-profile-picture.jpg",
+        username: "ranuser" + (i + index),
+        displayName: "Random User"
+      });
+    }
+  } else {
+    var count = 0;
+    for (let i = 0; i < 10; i++) {
+      arr.push({
+        profilePic:
+          "https://www.ienglishstatus.com/wp-content/uploads/2018/04/Anonymous-Whatsapp-profile-picture.jpg",
+        username: "ranuser" + (i + index),
+        displayName: "Random User"
+      });
+    }
+  }
+  return new Promise((resolve, reject) =>
+    setTimeout(function() {
+      resolve(arr);
+    }, 1000)
+  );
+}
+
+export class FollowersModal extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      max: 10,
-      loaded: true,
-      users: this.props.users,
-      loadedUsers: []
+      loadedUsers: [],
+      isLoading: true,
+      canLoadMore: true,
+      index: 0
     };
     this.getUsers = this.getUsers.bind(this);
   }
   getUsers() {
-    let users = [];
-    for (let i = 0; i < 10 && i < this.state.users.length; i++) {
-      var result = getUser(this.state.users[i]);
-      if (result.length != 1) {
-        users.push({
-          profilePic: result.ProfilePic,
-          username: result.Username,
-          displayName: result.DisplayName
-        });
-      } else {
-        console.log("Error:" + result);
-      }
-    }
-    this.setState({ loadedUsers: users, loaded: true });
+    this.setState({
+      isLoading: true
+    });
+
+    var result = GETAsync(
+      `/api/users/GetUserFollowers/${this.props.username}/${
+        this.props.isFollowers
+      }/false/${this.state.index}`,
+      function(result) {
+        var users = JSON.parse(result);
+        this.setState(prevState => ({
+          index: prevState.index + users.length,
+          canLoadMore: users.length == 10,
+          isLoading: false,
+          loadedUsers: prevState.loadedUsers.concat(users)
+        }));
+      }.bind(this)
+    );
   }
+
   componentWillMount() {
     this.getUsers();
   }
@@ -106,32 +142,35 @@ class FollowersModal extends React.Component {
           onClick={this.props.close}
           className="followers-modal-background"
         />
-        <div className="followers-modal-body">
+        <div className="followers-modal-body Scrollbar">
           <h2 className="followers-modal-header">
             {this.props.followers ? "Followers" : "Following"}
           </h2>
           <div className="followers-modal-split" />
-          <ul className="followers-modal-list">
-            {this.state.loaded ? (
-              this.state.users.length == 0 ? (
-                <h1>No Followers</h1>
-              ) : (
-                [...Array(10)].map((v, index) => {
-                  if (index <= this.state.loadedUsers.length - 1) {
-                    return (
-                      <FollowersModalListItem
-                        key={this.state.loadedUsers[index].username}
-                        pic={this.state.loadedUsers[index].profilePic}
-                        username={this.state.loadedUsers[index].username}
-                        displayName={this.state.loadedUsers[index].displayName}
-                      />
-                    );
-                  }
-                })
-              )
-            ) : (
-              <h1>Loading...</h1>
+          <ul ref={"followList"} className="followers-modal-list">
+            {this.state.loadedUsers.map((user, index) => (
+              <FollowersModalListItem
+                key={index}
+                pic={user.profilePic}
+                username={user.username}
+                displayName={user.displayName}
+              />
+            ))}
+            {this.state.isLoading && (
+              <p className="followers-modal-loading-header">Loading</p>
             )}
+            {this.state.canLoadMore &&
+              !this.state.isLoading && (
+                <button
+                  className="followers-modal-load-button"
+                  onClick={function() {
+                    this.getUsers();
+                    console.log(this.refs.followList);
+                  }.bind(this)}
+                >
+                  Load More
+                </button>
+              )}
           </ul>
         </div>
       </div>

@@ -1,16 +1,15 @@
 .main-page {
-  background-color: rgba(0, 0, 0, 0.01);
   height: 100%;
   width: 100%;
   position: absolute;
-  overflow: scroll;
-  overflow-x: hidden;
   scroll-behavior: smooth;
 }
-
 .main-page-content {
+  background-color: rgba(0, 0, 0, 0.01);
   display: grid;
   grid-template-columns: 300px auto 300px;
+  height: calc(100% - 48px);
+  overflow-y: scroll;
 }
 .main-page-input-posts {
   grid-column: 2;
@@ -29,4 +28,9 @@
 }
 .full {
   width: 96vw;
+}
+.noscroll {
+  overflow: hidden;
+  padding-right: 10px;
+  width: calc(100% - 10px);
 }

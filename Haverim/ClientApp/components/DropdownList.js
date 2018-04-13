@@ -15,6 +15,12 @@ export class DropdownList extends React.Component {
     this.finishLoading = this.finishLoading.bind(this);
     this.requestNotifcations();
   }
+  componentWillMount() {
+    this.mounted = true;
+  }
+  componentWillUnmount() {
+    this.mounted = false;
+  }
 
   render() {
     return (
@@ -46,9 +52,7 @@ export class DropdownList extends React.Component {
     this.props.close();
   }
 
-  requestNotifcations() {
-    setTimeout(
-      function() {
+    requestNotifcations() {
         var result = POST(
           "/api/users/GetNotifications",
           JSON.stringify({
@@ -56,31 +60,30 @@ export class DropdownList extends React.Component {
             index: 0
           })
         );
-        result = result.substring(1, result.length - 1);
         if (result.split(":")[0] == "error") {
           this.finishLoading();
           return;
         }
-        var notifications = JSON.parse(result.split("\\").join(""));
+        var notifications = JSON.parse(result);
         var keyIndex = 0;
-        this.setState({
-          loaded: true,
-          notificationList: notifications.map(notification => {
-            return (
-              <Notification
-                id={keyIndex++}
-                username={notification.TargetUsername}
-                unixTime={new Date(notification.PublishDate).getTime() / 1000}
-                type={notification.Type}
-              />
-            );
-          })
-        });
+        if (this.mounted) {
+          this.setState({
+            loaded: true,
+            notificationList: notifications.map(notification => {
+              return (
+                <Notification
+                  id={keyIndex++}
+                  username={notification.targetUsername}
+                  unixTime={new Date(notification.publishDate).getTime() / 1000}
+                  type={notification.type}
+                />
+              );
+            })
+          });
 
-        this.finishLoading();
-      }.bind(this),
-      1000
-    );
+          this.finishLoading();
+        }
+      }
   }
   finishLoading() {
     this.setState({ loaded: true });

@@ -24,11 +24,11 @@ export class ProfilePage extends React.Component {
     var isFollowing = false;
     if (
       currentUser !== false &&
-      currentUser.Username !== this.targetUser.Username
+      currentUser.username !== this.targetUser.username
     ) {
-      var targetFollowers = getUserFollowers(this.targetUser.Username, true);
+      var targetFollowers = getUserFollowers(this.targetUser.username, true);
       if (targetFollowers.length != 1) {
-        if (targetFollowers.includes(currentUser.Username)) {
+        if (targetFollowers.includes(currentUser.username)) {
           isFollowing = true;
         }
       }
@@ -50,8 +50,8 @@ export class ProfilePage extends React.Component {
   }
   getDate(isJoin) {
     let date = isJoin
-      ? new Date(this.targetUser.JoinDate)
-      : new Date(this.targetUser.BirthDate);
+      ? new Date(this.targetUser.joinDate)
+      : new Date(this.targetUser.birthDate);
 
     if (isJoin) {
       return this.formatMonth(date.getMonth()) + " " + date.getFullYear();
@@ -87,59 +87,64 @@ export class ProfilePage extends React.Component {
       <div className="user-profile-container">
         {this.state.currentUser === false && <Redirect to="/login" />}
         {this.targetUser === "redirect" && <Redirect to="/invalid" />}
-        <Navbar profilepic={this.state.currentUser.ProfilePic} />
-        <div className={"user-profile-info-container"}>
-          {this.targetUser.ProfilePagePicture == null ? (
-            <div className="user-profile-no-picture" />
-          ) : (
-            <img
-              className={"user-profile-back-image"}
-              src={this.targetUser.ProfilePagePicture}
-            />
-          )}
-
-          <div className={"user-profile-main-info"}>
-            <p className={"user-profile-displayname"}>
-              {this.targetUser.DisplayName}
-            </p>
-            <img
-              className={"user-profile-profilepic"}
-              src={this.targetUser.ProfilePic}
-            />
-            <p className={"user-profile-username"}>
-              {this.targetUser.Username}
-            </p>
-          </div>
-
-          <div className={"user-profile-more-info"}>
-            <p className={"user-profile-more-info-join-date"}>
-              {this.getDate(true)}
-            </p>
-            <p className={"user-profile-more-info-birth-date"}>
-              {this.getDate(false)}
-            </p>
-            {this.targetUser.Username != this.state.currentUser.Username && (
-              <button
-                onClick={this.toggleFollow}
-                className={
-                  this.state.isFollowing
-                    ? "user-profile-more-info-follow-button"
-                    : "not-following-button"
-                }
-              >
-                {this.state.isFollowing ? "Following" : "Follow"}
-              </button>
+        <Navbar profilepic={this.state.currentUser.profilePic} />
+        <div className="profile-page-contents Scrollbar">
+          <div className={"user-profile-info-container"}>
+            {this.targetUser.profilePagePicture == null ? (
+              <div className="user-profile-no-picture" />
+            ) : (
+              <img
+                className={"user-profile-back-image"}
+                src={this.targetUser.profilePagePicture}
+              />
             )}
-            <p className={"user-profile-more-info-country"}>
-              {this.targetUser.Country}
-            </p>
-            <p className={"user-profile-more-info-gender"}>
-              {this.targetUser.isMale ? "Male" : "Female"}
-            </p>
+
+            <div className={"user-profile-main-info"}>
+              <p className={"user-profile-displayname"}>
+                {this.targetUser.displayName}
+              </p>
+              <img
+                className={"user-profile-profilepic"}
+                src={this.targetUser.profilePic}
+              />
+              <p className={"user-profile-username"}>
+                {this.targetUser.username}
+              </p>
+            </div>
+
+            <div className={"user-profile-more-info"}>
+              <p className={"user-profile-more-info-join-date"}>
+                {this.getDate(true)}
+              </p>
+              <p className={"user-profile-more-info-birth-date"}>
+                {this.getDate(false)}
+              </p>
+              {this.targetUser.username != this.state.currentUser.username && (
+                <button
+                  onClick={this.toggleFollow}
+                  className={
+                    this.state.isFollowing
+                      ? "user-profile-more-info-follow-button"
+                      : "not-following-button"
+                  }
+                >
+                  {this.state.isFollowing ? "Following" : "Follow"}
+                </button>
+              )}
+              <p className={"user-profile-more-info-country"}>
+                {this.targetUser.country}
+              </p>
+              <p className={"user-profile-more-info-gender"}>
+                {this.targetUser.isMale ? "Male" : "Female"}
+              </p>
+            </div>
           </div>
-        </div>
-        <div className="user-profile-post-feed">
-          <PostFeed currentUser={this.state.currentUser} noFieldInput={true} />
+          <div className="user-profile-post-feed">
+            <PostFeed
+              currentUser={this.state.currentUser}
+              noFieldInput={true}
+            />
+          </div>
         </div>
       </div>
     );

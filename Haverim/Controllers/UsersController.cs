@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using Haverim.Models;
 using Newtonsoft.Json;
 using Haverim.Controllers.Helpers;
+using System.Threading;
 
 namespace Haverim.Controllers
 {
@@ -103,6 +104,8 @@ namespace Haverim.Controllers
 
             if (UserToBeFollowed == null)
                 return "error:0";
+            if (UserToBeFollowed.Username == Payload.Username)
+                return "error:9";
 
             // User is already following target user
             List<string> RequestUserFollowingList = RequestUser.Following;
@@ -143,7 +146,6 @@ namespace Haverim.Controllers
             if (Status != Helpers.JWT.TokenStatus.Valid)
                 return "error:6";
 
-
             var RequestUser = this._context.Users.Find(Payload.Username);
             var UserToBeFollowed = this._context.Users.Find(request.TargetUser);
 
@@ -152,6 +154,9 @@ namespace Haverim.Controllers
 
             if (UserToBeFollowed == null)
                 return "error:0";
+
+            if (UserToBeFollowed.Username == Payload.Username)
+                return "error:9";
 
             // User is already not following target user
             List<string> RequestUserFollowingList = RequestUser.Following;
@@ -171,26 +176,26 @@ namespace Haverim.Controllers
         }
 
         [HttpPost("[Action]")]
-        public string GetNotifications([FromBody]ApiClasses.FeedRequest request)
+        public JsonResult GetNotifications([FromBody]ApiClasses.FeedRequest request)
         {
             if (String.IsNullOrWhiteSpace(request.Token))
-                return "error:5";
+                return Json("error:5");
             (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) = Helpers.JWT.VerifyToken(request.Token);
 
             if (Status != Helpers.JWT.TokenStatus.Valid)
-                return "error:6";
+                return Json("error:6");
 
             var User = this._context.Users.Find(Payload.Username);
             if (User == null)
-                return "error:0";
+                return Json("error:0");
 
             List<Notification> UserNotifications = User.Notifications;
-            if(UserNotifications == null)
-                return "[]";
-            
+            if (UserNotifications == null)
+                return Json("[]");
+
             int FeedCount = UserNotifications.Count();
             if (request.index >= FeedCount)
-                return "error:7";
+                return Json("error:7");
 
             Notification[] RequestedNotifications;
 
@@ -216,42 +221,74 @@ namespace Haverim.Controllers
                     PostsIndexer++;
                 }
             }
-            return JsonConvert.SerializeObject(RequestedNotifications);
+            return Json(RequestedNotifications);
         }
 
         [HttpGet("[Action]/{username}")]
-        public string GetUser([FromRoute]string username)
+        public JsonResult GetUser([FromRoute]string username)
         {
             if (String.IsNullOrWhiteSpace(username))
-                return "error:5";
+                return Json("error:5");
             var RequestedUser = this._context.Users.Find(username);
             var users = this._context.Users;
             if (RequestedUser == null)
-                return "error:0";
-            return JsonConvert.SerializeObject(new ApiClasses.PublicUserData(RequestedUser));
+                return Json("error:0");
+
+            return Json(RequestedUser);
             //TODO: [Future Feature] when token is passes return all information, when not return basic information
         }
 
-        [HttpGet("[Action]/{username}/{followers}")]
-        public string GetUserFollowers([FromRoute]string username, [FromRoute] bool followers)
+        [HttpGet("[Action]/{username}/{followers}/{getAll}/{index}")]
+        public JsonResult GetUserFollowers([FromRoute]string username, [FromRoute] bool followers, [FromRoute] bool getAll = true, [FromRoute] int index = 0)
         {
             if (String.IsNullOrWhiteSpace(username))
-                return "error:5";
+                return Json("error:5");
             var RequestedUser = this._context.Users.Find(username);
             if (RequestedUser == null)
-                return "error:0";
-            if (followers)
-                return JsonConvert.SerializeObject(RequestedUser.Followers);
-            return JsonConvert.SerializeObject(RequestedUser.Following);
+                return Json("error:0");
+
+            var FollowUsers = followers ? RequestedUser.Followers : RequestedUser.Following;
+            if (getAll)
+            {
+                if (followers)
+                    return Json(RequestedUser.Followers);
+                return Json(RequestedUser.Following);
+            }
+
+            int Length = FollowUsers.Count;
+            List<ApiClasses.BasicUserData> RequestedUsers = new List<ApiClasses.BasicUserData>();
+
+
+            if (index >= Length)
+            {
+                return Json(new string[] { });
+            }
+
+            int RequestLength = 10;
+            if (index + 10 >= Length)
+                RequestLength = Length - index;
+
+            for (int i = 0; i < RequestLength; i++)
+            {
+                User CurrentUser = this._context.Users.Find(FollowUsers[index + i]);
+                RequestedUsers.Add(new ApiClasses.BasicUserData
+                {
+                    DisplayName = CurrentUser.DisplayName,
+                    Username = CurrentUser.Username,
+                    ProfilePic = CurrentUser.ProfilePic,
+                });
+            }
+
+            return Json(RequestedUsers);         
         }
 
         [HttpPost("[Action]")]
-        public string GetUserByToken([FromBody] ApiClasses.KeyClass JWTKey)
+        public JsonResult GetUserByToken([FromBody] ApiClasses.KeyClass JWTKey)
         {
             (Helpers.JWT.TokenStatus status, Helpers.ApiClasses.Payload payload) = Helpers.JWT.VerifyToken(JWTKey.Key);
             if (status != Helpers.JWT.TokenStatus.Valid)
             {
-                return "error:6";
+                return Json("error:6");
             }
             else
             {
@@ -259,9 +296,9 @@ namespace Haverim.Controllers
 
                 if (User == null)
                 {
-                    return "error:0";
+                    return Json("error:0");
                 }
-                return "success:" + JsonConvert.SerializeObject(new ApiClasses.CurrentUserData(User));
+                return Json(new ApiClasses.CurrentUserData(User));
             }
 
         }
