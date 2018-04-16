@@ -31,11 +31,11 @@ export class MainPage extends React.Component {
   constructor(props) {
     super(props);
     var isLoggedIn = checkIfLogged();
-
     var width =
       window.innerWidth ||
       document.documentElement.clientWidth ||
       document.body.clientWidth;
+
     this.state = {
       screenWidth: width,
       isLoggedIn: isLoggedIn,
@@ -47,6 +47,7 @@ export class MainPage extends React.Component {
     this.getScreenWidth = this.getScreenWidth.bind(this);
     this.toggleModal = this.toggleModal.bind(this);
     window.addEventListener("resize", this.getScreenWidth);
+    this.scrollRef = React.createRef();
   }
 
   componentWillUnmount() {
@@ -70,6 +71,7 @@ export class MainPage extends React.Component {
       <div className="main-page">
         <Navbar profilepic={this.state.currentUser.profilePic} />
         <div
+          ref={this.scrollRef}
           className={
             this.state.isModalOpen
               ? "main-page-content Scrollbar noscroll"
@@ -95,11 +97,13 @@ export class MainPage extends React.Component {
                 : "full"
             }
           >
-            <PostFeed currentUser={this.state.currentUser} />
+            <PostFeed
+              scrollRef={this.scrollRef}
+              currentUser={this.state.currentUser}
+            />
           </div>
           {this.state.screenWidth > this.switchValue && (
             <div className="main-page-friends-list">
-              {" "}
               <FriendsList
               // friends = { [ < FriendListItem username = "@dsmith" profilepic =
               // "Assets/davidprofile.png" dispayName = "David Smith" isOnline = {     true }
@@ -108,7 +112,7 @@ export class MainPage extends React.Component {
               // />, < FriendListItem username = "@dsmith" profilepic =
               // "Assets/davidprofile.png" dispayName = "David Smith" isOnline = {     false }
               // /> ] }
-              />{" "}
+              />
             </div>
           )}
         </div>

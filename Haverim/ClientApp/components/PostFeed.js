@@ -2,20 +2,24 @@ import React from "react";
 import Post from "./Post";
 import { FieldInput } from "./FieldInput";
 import "../css/PostFeed.css";
-import { POST, GET } from "../RestMethods";
-import { getUser } from "../GlobalRequests";
+import { POST, GET, POSTAsync } from "../RestMethods";
+import { getUser, getUserFeed } from "../GlobalRequests";
 
 export class PostFeed extends React.Component {
   constructor(props) {
     super(props);
 
     this.state = {
-      postList: this.props.posts ? this.props.posts : [],
-      finishedLoading: false
+      postList: [],
+      finishedLoading: false,
+      loadingMore: false,
+      canLoadMore: true
     };
     this.addPostToFeed = this.addPostToFeed.bind(this);
     this.formatTime = this.formatTime.bind(this);
     this.requestPostsFromServer = this.requestPostsFromServer.bind(this);
+    this.onScrollHandler = this.onScrollHandler.bind(this);
+    this.interval = setInterval(this.onScrollHandler, 1);
     /*
         1. Start animation with a timer
         2. fetch feed from server
@@ -24,47 +28,42 @@ export class PostFeed extends React.Component {
         */
   }
 
-  requestPostsFromServer(key) {
-    var body = {
-      Token: key,
-      index: 0
-    };
-    var result = POST("/api/posts/GetPostFeed", JSON.stringify(body));
-    var hasError = result.split(":")[0] == "error";
-    if (hasError) {
-      console.log(result);
-      this.setState({ finishedLoading: true });
-      return;
-    }
+  onScrollHandler() {
+    if (this.props.scrollRef != null && this.props.scrollRef.current != null) {
+      this.props.scrollRef.current.onscroll = function(e) {
+        if (!this.state.loadingMore && this.state.canLoadMore) {
+          var windowHeight = window.innerHeight - 47.5;
+          var docHeight = e.target.scrollHeight;
+          var scrollTop = e.target.scrollTop;
 
-    var username = this.props.currentUser.username;
-    var originElement = this;
+          var trackLength = docHeight - windowHeight;
+          var scrollPercentage = scrollTop / trackLength;
 
-    var posts = JSON.parse(result).map(
-      function(value) {
-        var user = getUser(value.publisherId);
-        if (user.length == 1) {
-          return;
+          if (scrollPercentage > 0.99) {
+            this.setState({
+              loadingMore: true
+            });
+          }
         }
-        return (
-          <Post
-            currentUserProfilepic={this.props.currentUser.profilePic}
-            currentUsername={this.props.currentUser.username}
-            postId={value.id}
-            displayName={user.displayName}
-            profilepic={user.profilePic}
-            username={value.publisherId}
-            body={value.body}
-            upvoteCount={value.upvotedUsers.length}
-            isUpvoted={value.upvotedUsers.includes(username)}
-            unixTime={new Date(value.publishDate).getTime() / 1000}
-            comments={value.comments}
-            key={value.id}
-          />
-        );
-      }.bind(this)
+      }.bind(this);
+      clearInterval(this.interval);
+    }
+  }
+
+  componentDidUpdate() {
+    if (this.state.loadingMore) {
+      this.requestPostsFromServer();
+    }
+  }
+
+  requestPostsFromServer() {
+    getUserFeed(
+      sessionStorage.getItem("jwtkey"),
+      this.state.postList.length,
+      this
     );
-    this.setState({ postList: posts, finishedLoading: true });
+
+    //this.setState({ postList: posts, finishedLoading: true });
   }
 
   addPostToFeed(profilepic, displayName, username, body, time, key) {
@@ -126,11 +125,9 @@ export class PostFeed extends React.Component {
     ];
     return monthNames[monthNum];
   }
-  logKey(e) {
-    console.log(e);
-  }
+
   componentWillMount() {
-    this.requestPostsFromServer(sessionStorage.getItem("jwtkey"));
+    this.requestPostsFromServer();
   }
 
   render() {
@@ -168,9 +165,9 @@ export class PostFeed extends React.Component {
               src="http://www.iceflowstudios.com/v3/wp-content/uploads/2013/01/LoadingCircle_firstani.gif"
             />
           )}
+          {this.state.loadingMore && <h1>Loading More</h1>}
         </ul>
       </div>
     );
   }
 }
-//*"/Assets/load-animation.svg"*/

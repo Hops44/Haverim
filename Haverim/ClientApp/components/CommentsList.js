@@ -8,7 +8,9 @@ export class Comment extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      isUpvoted: this.props.upvotedUsers.includes(this.props.currentUsername)
+      isUpvoted: this.props.upvotedUsers.includes(this.props.currentUsername),
+      upvoteCount:
+        this.props.upvotedUsers != null ? this.props.upvotedUsers.length : 0
     };
     this.upvoteClick = this.upvoteClick.bind(this);
   }
@@ -26,16 +28,19 @@ export class Comment extends React.PureComponent {
           </Link>
           <p className="comment-body">{this.props.body}</p>
         </div>
-        <img
-          onClick={this.upvoteClick}
-          className="comment-upvote"
-          src={
-            this.state.isUpvoted
-              ? "/Assets/upvote-filled.svg"
-              : "/Assets/upvote.svg"
-          }
-        />
-        <hr className="comment-split" />
+        <div className="comment-upvote-container">
+          <img
+            onClick={this.upvoteClick}
+            className="comment-upvote"
+            src={
+              this.state.isUpvoted
+                ? "/Assets/upvote-filled.svg"
+                : "/Assets/upvote.svg"
+            }
+          />
+          <p className="comment-upvote-count">{this.state.upvoteCount}</p>
+        </div>
+        {/* <hr className="comment-split" /> */}
       </div>
     );
   }
@@ -56,11 +61,6 @@ export class Comment extends React.PureComponent {
       );
     } else {
       //UPVOTE
-      console.log({
-        Token: sessionStorage.getItem("jwtkey"),
-        postId: this.props.postId,
-        commentId: commentId
-      });
       var result = POST(
         "/api/posts/UpvoteComment",
         JSON.stringify({
@@ -71,6 +71,9 @@ export class Comment extends React.PureComponent {
       );
     }
     this.setState(prevState => ({
+      upvoteCount: prevState.isUpvoted
+        ? prevState.upvoteCount - 1
+        : prevState.upvoteCount + 1,
       isUpvoted: !prevState.isUpvoted
     }));
   }

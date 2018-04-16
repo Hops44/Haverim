@@ -23,6 +23,7 @@ class Post extends React.PureComponent {
     this.formatTime = this.formatTime.bind(this);
     this.generateText = this.generateText.bind(this);
     this.incrementCommentCount = this.incrementCommentCount.bind(this);
+    this.getModal = this.getModal.bind(this);
   }
 
   incrementCommentCount() {
@@ -30,7 +31,6 @@ class Post extends React.PureComponent {
       commentCount: prevState.commentCount + 1
     }));
   }
-
   openQuickReply() {
     this.setState({ quickReplyVisibility: true });
   }
@@ -56,11 +56,13 @@ class Post extends React.PureComponent {
     }));
   }
   openPostModal() {
+    if (this.state.modalVisibility === true) {
+      this.props.scrollRef.current.style.overflowY = "scroll";
+    }
     this.setState(prevState => ({
       modalVisibility: !prevState.modalVisibility
     }));
   }
-
   formatTime() {
     const now = this.state.currentUnixTime;
     const diff = Math.floor(now - this.props.unixTime);
@@ -117,10 +119,38 @@ class Post extends React.PureComponent {
     }
     return text;
   }
+  getModal() {
+    this.props.scrollRef.current.style.overflow = "hidden";
+    return (
+      <div
+        className="modal-container-top"
+        style={{
+          top: this.props.scrollRef.current.scrollTop.toString() + "px"
+        }}
+      >
+        <Modal
+          upvoteCount={this.state.upvoteCount}
+          displayName={this.props.displayName}
+          username={this.props.username}
+          profilepic={this.props.profilepic}
+          body={this.props.body}
+          closeFunction={this.openPostModal}
+          isUpvoted={this.state.isUpvoted}
+          upvoteFunction={this.upvoteClick}
+          comments={this.props.comments}
+          postId={this.props.postId}
+          currentUsername={this.props.currentUsername}
+          currentUserProfilepic={this.props.currentUserProfilepic}
+          incrementCommentCount={this.incrementCommentCount}
+        />
+      </div>
+    );
+  }
 
   render() {
     return (
-      <div>
+      <React.Fragment>
+        {this.state.modalVisibility && this.getModal()}
         {this.props.extraInfo && (
           <Link to={`/profile/${this.props.extraInfo.user.username}`}>
             <p className="post-other-user-info noselect">
@@ -181,23 +211,7 @@ class Post extends React.PureComponent {
             />
           </div>
         </div>
-        {this.state.modalVisibility && (
-          <Modal
-            upvoteCount={this.state.upvoteCount}
-            displayName={this.props.displayName}
-            username={this.props.username}
-            profilepic={this.props.profilepic}
-            body={this.props.body}
-            closeFunction={this.openPostModal}
-            isUpvoted={this.state.isUpvoted}
-            upvoteFunction={this.upvoteClick}
-            comments={this.props.comments}
-            postId={this.props.postId}
-            currentUsername={this.props.currentUsername}
-            currentUserProfilepic={this.props.currentUserProfilepic}
-            incrementCommentCount={this.incrementCommentCount}
-          />
-        )}
+
         {this.state.quickReplyVisibility && (
           <QuickReply
             profilepic={this.props.currentUserProfilepic}
@@ -205,7 +219,7 @@ class Post extends React.PureComponent {
             postId={this.props.postId}
           />
         )}
-      </div>
+      </React.Fragment>
     );
   }
 }

@@ -37,21 +37,38 @@
   overflow: hidden;
   cursor: default;
   width: auto;
+  width: 90%;
 }
 .comment-split {
   border: 0;
   border-bottom: 0px solid rgba(218, 218, 218, 0.541);
 }
+.comment-upvote-container {
+  margin-left: calc(100% - 48.094px - 1.2%);
+  display: inline-block;
+  position: relative;
+}
+.comment-upvote-count {
+  display: inline-block;
+  margin: 0;
+  font-size: 22px;
+  line-height: 30px;
+  margin-left: 10px;
+  height: 30px;
+  color: #f2994a;
+  font-family: "Quicksand";
+}
+
 .comment-upvote {
+  display: inline-block;
   width: 25px;
   height: 25px;
   margin: 0;
-  float: right;
   cursor: pointer;
   margin-right: 10px;
   opacity: 0.6;
   margin-top: -20px;
-  transition: opacity 0.2s, width 0.2s, height 0.2s, margin-right 0.2s,
+  transition: opacity 0.2s, width 0.2s, height 0.2s, margin-left 0.2s,
     margin-top 0.2s;
   margin-right: 0;
 }
@@ -60,7 +77,9 @@
   width: 30px;
   height: 30px;
   margin-top: -25px;
+  margin-left: -5px;
 }
+
 /* --------------------------------------------- CommentsList  -------------------------------------------------------------------- */
 .comments-list-list {
   list-style: none;

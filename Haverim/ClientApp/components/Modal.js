@@ -18,6 +18,13 @@ class Modal extends React.Component {
     this.upvoteClick = this.upvoteClick.bind(this);
     this.addComment = this.addComment.bind(this);
     this.getComments = this.getComments.bind(this);
+
+    document.onkeydown = function(e) {
+      if (e.keyCode == 27) {
+        document.onkeydown = null;
+        this.props.closeFunction();
+      }
+    }.bind(this);
   }
   getComments() {
     var result = POST(
@@ -35,9 +42,8 @@ class Modal extends React.Component {
     return [];
   }
   render() {
-    //(e == 27 ? this.closeFunction : undefined)
     return (
-      <div>
+      <React.Fragment>
         <div onClick={this.props.closeFunction} className="modal-background" />
         <div className="modal-container">
           <Link
@@ -85,7 +91,7 @@ class Modal extends React.Component {
             comments={this.state.comments}
           />
         </div>
-      </div>
+      </React.Fragment>
     );
   }
 

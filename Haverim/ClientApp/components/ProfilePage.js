@@ -5,6 +5,7 @@ import "../css/ProfilePage.css";
 import { getUser, getUserFollowers } from "../GlobalRequests";
 import { checkIfLogged } from "./MainPage";
 import { Redirect } from "react-router";
+import { POST } from "../RestMethods";
 
 export class ProfilePage extends React.Component {
   constructor(props) {
@@ -27,11 +28,8 @@ export class ProfilePage extends React.Component {
       currentUser.username !== this.targetUser.username
     ) {
       var targetFollowers = getUserFollowers(this.targetUser.username, true);
-      if (targetFollowers.length != 1) {
-        if (targetFollowers.includes(currentUser.username)) {
-          isFollowing = true;
-        }
-      }
+
+      isFollowing = targetFollowers.includes(currentUser.username);
     }
 
     this.state = {
@@ -44,6 +42,20 @@ export class ProfilePage extends React.Component {
   }
 
   toggleFollow() {
+    var url;
+    if (this.state.isFollowing) {
+      url = "api/users/UnFollowUser";
+    } else {
+      url = "api/users/FollowUser";
+    }
+    var result = POST(
+      url,
+      JSON.stringify({
+        Token: sessionStorage.getItem("jwtkey"),
+        TargetUser: this.targetUser.username
+      })
+    );
+    console.log(result);
     this.setState(prevState => ({
       isFollowing: !prevState.isFollowing
     }));

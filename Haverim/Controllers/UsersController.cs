@@ -279,7 +279,7 @@ namespace Haverim.Controllers
                 });
             }
 
-            return Json(RequestedUsers);         
+            return Json(RequestedUsers);
         }
 
         [HttpPost("[Action]")]
@@ -301,6 +301,25 @@ namespace Haverim.Controllers
                 return Json(new ApiClasses.CurrentUserData(User));
             }
 
+        }
+
+        [HttpGet("[Action]/{q}")]
+        public JsonResult SearchUser([FromRoute]string q)
+        {
+            q = q.ToUpperInvariant();
+            List<ApiClasses.BasicUserData> MatchedUsers = new List<ApiClasses.BasicUserData>();
+            foreach (var user in _context.Users)
+            {
+                if (user.DisplayName.ToUpperInvariant().Contains(q) || user.Username.ToUpperInvariant().Contains(q))
+                {
+                    MatchedUsers.Add(new ApiClasses.BasicUserData { Username = user.Username, DisplayName = user.DisplayName, ProfilePic = user.ProfilePic });
+                }
+                if (MatchedUsers.Count == 10)
+                {
+                    break;
+                }
+            }
+            return Json(MatchedUsers);
         }
     }
 }

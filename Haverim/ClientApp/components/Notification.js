@@ -1,17 +1,23 @@
 import React from "react";
-import { getUser } from "../GlobalRequests";
+import { getUser, getUserAsync } from "../GlobalRequests";
+import { Link } from "react-router-dom";
 
 export class Notification extends React.PureComponent {
   constructor(props) {
     super(props);
     this.state = {
-      currentUnixTime: Date.now() / 1000
+      currentUnixTime: Date.now() / 1000,
+      displayName: ""
     };
 
     this.generateText = this.generateText.bind(this);
     this.formatTime = this.formatTime.bind(this);
   }
-
+  componentWillMount() {
+    getUserAsync(this.props.username).then(result => {
+      this.setState({ displayName: result.displayName });
+    });
+  }
   generateText() {
     var text = "";
     switch (this.props.type) {
@@ -33,9 +39,16 @@ export class Notification extends React.PureComponent {
     }
     return (
       <p style={{ color: "#828282" }} className="notification-text">
-        <b style={{ color: "#4F4F4F", fontWeight: "300" }}>
-          {getUser(this.props.username).displayName}
-        </b>{" "}
+        <Link
+          to={"/profile/" + this.props.username}
+          style={{ color: "#4F4F4F", fontWeight: "300" }}
+        >
+          {this.state.displayName == "" ? (
+            <div className="notification-username-placeholder" />
+          ) : (
+            this.state.displayName
+          )}
+        </Link>{" "}
         {text}
       </p>
     );
