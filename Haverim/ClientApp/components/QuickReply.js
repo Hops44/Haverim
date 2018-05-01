@@ -12,7 +12,11 @@ export class QuickReply extends React.Component {
   render() {
     return (
       <div>
-        <div onClick={this.closeQuickReply} className="modal-background" />
+        <div
+          onClick={this.closeQuickReply}
+          className="modal-background"
+          style={{ position: "fixed" }}
+        />
         <div className="quick-reply-field-container">
           <FieldInput
             profilepic={this.props.profilepic}

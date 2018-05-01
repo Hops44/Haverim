@@ -100,3 +100,115 @@ export function getUserFeed(token, index, context) {
     }, 20);
   });
 }
+
+export function getUserActivityFeed(targetUser, token, index, context) {
+  function getExistingTypesFromActivityFeed(parsed, id) {
+    let tags = [];
+    for (const item of parsed) {
+      if (item.post.id == id && !tags.includes(item.activity.type)) {
+        tags.push(item.activity.type);
+      }
+    }
+
+    return tags.join("");
+  }
+
+  function removeDups(list) {
+    var newList = [];
+    for (const item of list) {
+      var found = false;
+      for (const newListItem of newList) {
+        if (newListItem.key == item.key) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        newList.push(item);
+      }
+    }
+    return newList;
+  }
+
+  var body = {
+    Token: token,
+    index: index,
+    TargetUser: targetUser
+  };
+  POSTAsync("/api/posts/GetUserActivityFeed", JSON.stringify(body), result => {
+    var hasError = result.split(":")[0] == '"error';
+    if (hasError) {
+      context.setState({
+        finishedLoading: true,
+        loadingMore: false,
+        canLoadMore: false
+      });
+      console.log(result);
+      return;
+    }
+
+    let parsed = JSON.parse(result);
+    var feed = [];
+    for (const feedItem of parsed) {
+      getUserAsync(feedItem.post.publisherId).then(user => {
+        if (user.length == 1) {
+          return;
+        }
+        feed.push(
+          <Post
+            extraInfo={{
+              user: {
+                displayName: context.props.targetUser.displayName,
+                username: context.props.targetUser.username
+              },
+              type: getExistingTypesFromActivityFeed(parsed, feedItem.post.id)
+            }}
+            activityUnix={feedItem.activity.date}
+            scrollRef={context.props.scrollRef}
+            currentUserProfilepic={context.props.currentUser.profilePic}
+            currentUsername={context.props.currentUser.username}
+            postId={feedItem.post.id}
+            displayName={user.displayName}
+            profilepic={user.profilePic}
+            username={feedItem.post.publisherId}
+            body={feedItem.post.body}
+            upvoteCount={feedItem.post.upvotedUsers.length}
+            isUpvoted={feedItem.post.upvotedUsers.includes(context.props.currentUser.username)}
+            unixTime={new Date(feedItem.post.publishDate).getTime() / 1000}
+            comments={feedItem.post.comments}
+            key={feedItem.post.id}
+          />
+        );
+      });
+    }
+    var interval = setInterval(function() {
+      if (feed != null && feed.length == parsed.length) {
+        clearInterval(interval);
+        feed = feed.concat(context.state.postList);
+        feed.sort((a, b) => b.props.activityUnix - a.props.activityUnix);
+        context.setState(prevState => ({
+          postList: removeDups(feed),
+          finishedLoading: true,
+          loadingMore: false,
+          canLoadMore: feed.length == 10
+        }));
+      }
+    }, 20);
+  });
+}
+
+export function uploadImage(base64Data, type) {
+  return new Promise((resolve, reject) => {
+    POSTAsync(
+      "/api/Users/ChangeUserPictrue",
+      JSON.stringify({
+        Token: sessionStorage.getItem("jwtkey"),
+        ImageBase64Data: base64Data,
+        Type: type
+      }),
+      function(result) {
+        resolve(result);
+      }
+    );
+  });
+}

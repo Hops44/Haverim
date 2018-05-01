@@ -45,7 +45,7 @@ namespace Haverim.Tests.ControllersTests
                     BirthDateUnix = 959558400,
                     Country = "Canada",
                     IsMale = true,
-                    ProfilePic = "Some Url"
+                    ProfilePicBase64 = "Some Url"
                 };
                 var follower = new Controllers.Helpers.ApiClasses.RegisterUser
                 {
@@ -56,7 +56,7 @@ namespace Haverim.Tests.ControllersTests
                     BirthDateUnix = 959558400,
                     Country = "Canada",
                     IsMale = true,
-                    ProfilePic = "Some Url"
+                    ProfilePicBase64 = "Some Url"
                 };
 
                 string PublisherToken = UController.RegisterUser(publisher);
@@ -145,7 +145,7 @@ namespace Haverim.Tests.ControllersTests
                     BirthDateUnix = 959558400,
                     Country = "Canada",
                     IsMale = true,
-                    ProfilePic = "Some Url"
+                    ProfilePicBase64 = "Some Url"
                 };
                 // Publisher
                 string PublisherToken = UController.RegisterUser(RegisterUserInstance).Split(':')[1];
@@ -250,7 +250,7 @@ namespace Haverim.Tests.ControllersTests
                     BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
                     IsMale = false,
                     Password = "123456",
-                    ProfilePic = "Url"
+                    ProfilePicBase64 = "Url"
                 };
                 string PublisherToken = UController.RegisterUser(RegisterUser);
                 RegisterUser.Username = "usertoreply"; RegisterUser.Email += "m";
@@ -299,7 +299,7 @@ namespace Haverim.Tests.ControllersTests
                 });
                 Assert.AreEqual("success", ReplyResult.Split(':')[0]);
                 Assert.AreEqual(2, PostPublisher.Notifications.Count);
-                Assert.AreEqual("Second User", PostPublisher.Notifications[0].TargetUsername);
+                Assert.AreEqual("second user", PostPublisher.Notifications[0].TargetUsername);
 
                 /// Tests that will return error
                 // Invalid Token
@@ -363,7 +363,7 @@ namespace Haverim.Tests.ControllersTests
                     BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
                     IsMale = false,
                     Password = "123456",
-                    ProfilePic = "Url"
+                    ProfilePicBase64 = "Url"
                 };
                 string PublisherToken = UController.RegisterUser(RegisterRequest);
                 RegisterRequest.Username = "upvote user";
@@ -457,7 +457,7 @@ namespace Haverim.Tests.ControllersTests
                     BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
                     IsMale = false,
                     Password = "123456",
-                    ProfilePic = "Url"
+                    ProfilePicBase64 = "Url"
                 };
                 string PublisherToken = UController.RegisterUser(RegisterRequest);
                 RegisterRequest.Username = "upvote user";
@@ -553,7 +553,7 @@ namespace Haverim.Tests.ControllersTests
                     BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
                     IsMale = false,
                     Password = "123456",
-                    ProfilePic = "Url"
+                    ProfilePicBase64 = "Url"
                 };
                 string PostPublisherToken = UController.RegisterUser(RegisterUser).Split(':')[1];
                 RegisterUser.Username = "reply user"; RegisterUser.Email += "m";
@@ -594,7 +594,7 @@ namespace Haverim.Tests.ControllersTests
                 }
 
                 // Upvote from another user
-                RegisterUser.Username = "Second User"; RegisterUser.Email += "m";
+                RegisterUser.Username = "second user"; RegisterUser.Email += "m";
                 string SecondUserToken = UController.RegisterUser(RegisterUser).Split(':')[1];
                 UpvoteResult = PController.UpvoteComment(new ApiClasses.CommentUpvoteRequest
                 {
@@ -605,7 +605,7 @@ namespace Haverim.Tests.ControllersTests
                 Assert.AreEqual("success", UpvoteResult);
                 Assert.AreEqual(2, Post.Comments[0].UpvotedUsers.Count);
                 Assert.AreEqual(2, ReplyUser.Notifications.Count);
-                Assert.AreEqual("Second User", ReplyUser.Notifications[0].TargetUsername);
+                Assert.AreEqual("second user", ReplyUser.Notifications[0].TargetUsername);
                 Assert.AreEqual("post publisher", ReplyUser.Notifications[1].TargetUsername);
 
                 /// Error tests
@@ -624,7 +624,7 @@ namespace Haverim.Tests.ControllersTests
                     BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
                     IsMale = false,
                     Password = "123456",
-                    ProfilePic = "Url"
+                    ProfilePicBase64 = "Url"
                 };
 
                 var UController = new UsersController(db);
@@ -702,7 +702,7 @@ namespace Haverim.Tests.ControllersTests
                     BirthDateUnix = (int)new DateTimeOffset(new DateTime(1990, 1, 2)).ToUnixTimeSeconds(),
                     IsMale = false,
                     Password = "123456",
-                    ProfilePic = "Url"
+                    ProfilePicBase64 = "Url"
                 };
                 string PostPublisherToken = UController.RegisterUser(RegisterUser).Split(':')[1];
                 RegisterUser.Username = "reply user"; RegisterUser.Email += "m";
@@ -747,6 +747,75 @@ namespace Haverim.Tests.ControllersTests
                     Assert.AreEqual("success", RemoveResult);
                     Assert.AreEqual(0, Post.Comments[0].UpvotedUsers.Count);
                 }
+            }
+        }
+
+        [TestMethod]
+        public void GetUserActivityFeedTest()
+        {
+            using (var db = new HaverimContext(Global.ContextOptions))
+            {
+                Global.ResetDatabase(db);
+
+                var UController = new UsersController(db);
+                var PController = new PostsController(db);
+
+                var register_user = new ApiClasses.RegisterUser
+                {
+                    BirthDateUnix = 630720000,
+                    Country = "United States",
+                    DisplayName = "Test User",
+                    Email = "mail@email.com",
+                    IsMale = true,
+                    Password = "123456",
+                    Username = "TestUser"
+                };
+                var TestUserToken = UController.RegisterUser(register_user).Split(':')[1];
+
+                register_user.Username = "SecondUser";
+                register_user.Email = "mail2@mail.com";
+
+                var SecondUserToken = UController.RegisterUser(register_user).Split(':')[1];
+
+                // Create 12 posts
+                for (int i = 0; i < 12; i++)
+                {
+                    PController.CreatePost(new ApiClasses.CreatePost
+                    {
+                        Body = "Some Text",
+                        Token = TestUserToken
+                    });
+                }
+
+                PController.CreatePost(new ApiClasses.CreatePost
+                {
+                    Body = "Some Text",
+                    Token = SecondUserToken
+                });
+
+                // Get first 10
+                string ActivityFeedSerialized = JsonConvert.SerializeObject(PController.GetUserActivityFeed(new ApiClasses.ActivityFeedRequest
+                {
+                    TargetUser="testuser",
+                    index = 0,
+                    Token = TestUserToken
+                }).Value);
+
+                var ActivityFeed = JsonConvert.DeserializeObject<List<ApiClasses.ActivityFeedItem>>(ActivityFeedSerialized);
+
+                Assert.AreEqual(10, ActivityFeed.Count);
+
+                // Get last 2
+                ActivityFeedSerialized = JsonConvert.SerializeObject(PController.GetUserActivityFeed(new ApiClasses.ActivityFeedRequest
+                {
+                    TargetUser="testuser",
+                    index = 10,
+                    Token = TestUserToken
+                }).Value);
+
+                ActivityFeed = JsonConvert.DeserializeObject<List<ApiClasses.ActivityFeedItem>>(ActivityFeedSerialized);
+
+                Assert.AreEqual(2, ActivityFeed.Count);
             }
         }
     }

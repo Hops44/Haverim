@@ -1,5 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 using System;
 using System.Collections.Generic;
 
@@ -39,6 +38,7 @@ namespace Haverim.Migrations
                     Password = table.Column<string>(nullable: true),
                     ProfilePagePicture = table.Column<string>(nullable: true),
                     ProfilePic = table.Column<string>(nullable: true),
+                    _activityFeed = table.Column<string>(nullable: true),
                     _followers = table.Column<string>(nullable: true),
                     _following = table.Column<string>(nullable: true),
                     _notifications = table.Column<string>(nullable: true),
@@ -48,39 +48,10 @@ namespace Haverim.Migrations
                 {
                     table.PrimaryKey("PK_Users", x => x.Username);
                 });
-
-            migrationBuilder.CreateTable(
-                name: "Activity",
-                columns: table => new
-                {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn),
-                    PostId = table.Column<Guid>(nullable: false),
-                    Type = table.Column<int>(nullable: false),
-                    Username = table.Column<string>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Activity", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Activity_Users_Username",
-                        column: x => x.Username,
-                        principalTable: "Users",
-                        principalColumn: "Username",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Activity_Username",
-                table: "Activity",
-                column: "Username");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Activity");
-
             migrationBuilder.DropTable(
                 name: "Posts");
 

@@ -8,16 +8,22 @@
   background-color: white;
   margin: auto;
   border: 1px solid rgba(196, 196, 196, 0.384);
+  display: grid;
+  grid-template-rows: 20px 10px auto;
+  grid-template-columns: 90px auto 50px;
+  padding: 10px 0;
 }
 .comment-profile-pic {
   width: 70px;
   height: 70px;
-  margin-right: 10px;
-  margin-bottom: 5px;
   border-radius: 100%;
   cursor: pointer;
   float: left;
   z-index: 2;
+  position: relative;
+  grid-row: 1/5;
+  grid-column: 1;
+  margin-left: 10px;
 }
 .comment-username {
   display: inline-block;
@@ -25,28 +31,40 @@
   margin-left: 5px;
   cursor: pointer;
   margin-top: 5px;
+
+  grid-row: 2;
+  grid-column: 2;
 }
 .comment-displayname {
   margin-left: 0;
   color: #4f4f4f;
   display: -webkit-inline-box;
   cursor: pointer;
+  grid-row: 1;
+  grid-column: 2;
+}
+.comment-body-container {
+  grid-row: 1/4;
+  grid-column: 2;
 }
 .comment-body {
   margin: 0;
   overflow: hidden;
   cursor: default;
   width: auto;
-  width: 90%;
+  /* width: 90%; */
+  grid-row: 3;
+  grid-column: 2;
 }
 .comment-split {
   border: 0;
   border-bottom: 0px solid rgba(218, 218, 218, 0.541);
 }
 .comment-upvote-container {
-  margin-left: calc(100% - 48.094px - 1.2%);
   display: inline-block;
   position: relative;
+  grid-row: 3;
+  grid-column: 3;
 }
 .comment-upvote-count {
   display: inline-block;
@@ -68,8 +86,7 @@
   margin-right: 10px;
   opacity: 0.6;
   margin-top: -20px;
-  transition: opacity 0.2s, width 0.2s, height 0.2s, margin-left 0.2s,
-    margin-top 0.2s;
+  transition: opacity 0.2s, width 0.2s, height 0.2s, margin-left 0.2s, margin-top 0.2s;
   margin-right: 0;
 }
 .comment-upvote:hover {

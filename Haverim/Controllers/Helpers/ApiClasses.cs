@@ -19,8 +19,7 @@ namespace Haverim.Controllers.Helpers
             public int BirthDateUnix;
             public string Country;
             public bool IsMale;
-            public string ProfilePic;
-            public string ProfilePagePictue;
+            public string ProfilePicBase64;
         }
 
         public class CreatePost
@@ -58,6 +57,11 @@ namespace Haverim.Controllers.Helpers
         {
             public string Token;
             public int index;
+        }
+
+        public class ActivityFeedRequest : FeedRequest
+        {
+            public string TargetUser;
         }
 
         public class CreateReply
@@ -167,6 +171,31 @@ namespace Haverim.Controllers.Helpers
         {
             public string Token;
             public string PostId;
+        }
+
+        public class ActivityFeedItem
+        {
+            public Post Post;
+            public Activity Activity;
+
+            public ActivityFeedItem(Post post, Activity activity)
+            {
+                this.Post = post;
+                this.Activity = activity;
+            }
+
+        }
+
+        public class PictureUpadteRequest
+        {
+            public string Token;
+            public string ImageBase64Data;
+            public ImageType Type;
+            public enum ImageType
+            {
+                ProfilePicture,
+                ProfilePagePicture
+            }
         }
     }
 }

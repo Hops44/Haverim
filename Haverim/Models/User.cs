@@ -23,7 +23,22 @@ namespace Haverim.Models
         public bool IsMale { get; set; }
         public string Country { get; set; }
 
-        public List<Activity> ActivityFeed { get; set; }
+        [NotMapped]
+        public List<Activity> ActivityFeed
+        {
+            get
+            {
+                if (String.IsNullOrWhiteSpace(_activityFeed))
+                    return new List<Activity>();
+                else
+                    return JsonConvert.DeserializeObject<List<Activity>>(_activityFeed);
+            }
+            set
+            {
+                _activityFeed = JsonConvert.SerializeObject(value);
+            }
+        }
+        public string _activityFeed { get; set; }
 
         [NotMapped]
         public List<Notification> Notifications

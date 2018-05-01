@@ -7,6 +7,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Haverim", "Haverim\Haverim.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Haverim.Tests", "Haverim.Tests\Haverim.Tests.csproj", "{0DDE4655-F276-4CFF-8CFF-2FCE9A39BDB4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageApi", "ImageApi\ImageApi.csproj", "{6B9645E1-5EB5-45A5-AD80-8E712E928DB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{0DDE4655-F276-4CFF-8CFF-2FCE9A39BDB4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0DDE4655-F276-4CFF-8CFF-2FCE9A39BDB4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0DDE4655-F276-4CFF-8CFF-2FCE9A39BDB4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6B9645E1-5EB5-45A5-AD80-8E712E928DB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6B9645E1-5EB5-45A5-AD80-8E712E928DB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6B9645E1-5EB5-45A5-AD80-8E712E928DB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6B9645E1-5EB5-45A5-AD80-8E712E928DB3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

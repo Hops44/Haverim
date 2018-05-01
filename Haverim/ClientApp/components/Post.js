@@ -39,19 +39,16 @@ class Post extends React.PureComponent {
   }
   upvoteClick() {
     var result = POST(
-      `/api/posts/${
-        this.state.isUpvoted ? "RemoveUpvoteFromPost" : "UpvotePost"
-      }`,
+      `/api/posts/${this.state.isUpvoted ? "RemoveUpvoteFromPost" : "UpvotePost"}`,
       JSON.stringify({
         Token: sessionStorage.getItem("jwtkey"),
         PostId: this.props.postId
       })
     );
+    console.log(result);
 
     this.setState(prevState => ({
-      upvoteCount: prevState.isUpvoted
-        ? prevState.upvoteCount - 1
-        : prevState.upvoteCount + 1,
+      upvoteCount: prevState.isUpvoted ? prevState.upvoteCount - 1 : prevState.upvoteCount + 1,
       isUpvoted: !prevState.isUpvoted
     }));
   }
@@ -107,20 +104,44 @@ class Post extends React.PureComponent {
   }
   generateText() {
     var text = this.props.extraInfo.user.displayName + " ";
-    switch (this.props.extraInfo.type) {
-      case 0:
-        text += "Replied";
-        break;
+
+    function generateActionType(num) {
+      switch (num) {
+        case 0:
+          return "Replied";
+        case 1:
+          return "Posted";
+        case 2:
+          return "Upvoted";
+      }
+    }
+    var types = this.props.extraInfo.type
+      .toString()
+      .split("")
+      .map(val => Number(val));
+    types.sort((a, b) => a - b);
+
+    switch (types.length) {
       case 1:
-        text += "Upvoted";
+        text += generateActionType(types[0]);
         break;
       case 2:
-        text += "Posted";
+        text += generateActionType(types[0]) + " and " + generateActionType(types[1]);
+        break;
+      case 3:
+        text +=
+          generateActionType(types[1]) +
+          " , " +
+          generateActionType(types[0]) +
+          " and " +
+          generateActionType(types[2]);
+        break;
     }
     return text;
   }
   getModal() {
     this.props.scrollRef.current.style.overflow = "hidden";
+
     return (
       <div
         className="modal-container-top"
@@ -152,19 +173,20 @@ class Post extends React.PureComponent {
       <React.Fragment>
         {this.state.modalVisibility && this.getModal()}
         {this.props.extraInfo && (
-          <Link to={`/profile/${this.props.extraInfo.user.username}`}>
-            <p className="post-other-user-info noselect">
-              {this.generateText()}
-            </p>
+          <Link
+            to={
+              this.props.extraInfo.user.username == this.props.currentUsername
+                ? "/profile"
+                : `/profile/${this.props.extraInfo.user.username}`
+            }
+          >
+            <p className="post-other-user-info noselect">{this.generateText()}</p>
           </Link>
         )}
         <div className="post-container">
           <div className="post-user-container noselect">
             <Link className="Link" to={`/profile/${this.props.username}`}>
-              <img
-                className="post-profile-pic ProfilePicture"
-                src={this.props.profilepic}
-              />
+              <img className="post-profile-pic ProfilePicture" src={this.props.profilepic} />
             </Link>
             <div className="post-user-text-container">
               <Link className="Link" to={`/profile/${this.props.username}`}>
@@ -181,29 +203,17 @@ class Post extends React.PureComponent {
           </p>
           <div className="post-social-icons">
             <div className="post-upvote-count-container">
-              <p className="post-upvote-count noselect">
-                {this.state.upvoteCount}
-              </p>
+              <p className="post-upvote-count noselect">{this.state.upvoteCount}</p>
             </div>
             <img
               onClick={this.upvoteClick}
               className="social-icon"
-              src={
-                this.state.isUpvoted
-                  ? "/Assets/upvote-filled.svg"
-                  : "/Assets/upvote.svg"
-              }
+              src={this.state.isUpvoted ? "/Assets/upvote-filled.svg" : "/Assets/upvote.svg"}
             />
             <div className="post-upvote-count-container">
-              <p className="post-upvote-count noselect">
-                {this.state.commentCount}
-              </p>
+              <p className="post-upvote-count noselect">{this.state.commentCount}</p>
             </div>
-            <img
-              onClick={this.openPostModal}
-              className="social-icon"
-              src="/Assets/reply.svg"
-            />
+            <img onClick={this.openPostModal} className="social-icon" src="/Assets/reply.svg" />
             <img
               onClick={this.openQuickReply}
               className="social-icon"

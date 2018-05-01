@@ -9,8 +9,7 @@ export class Comment extends React.PureComponent {
     super(props);
     this.state = {
       isUpvoted: this.props.upvotedUsers.includes(this.props.currentUsername),
-      upvoteCount:
-        this.props.upvotedUsers != null ? this.props.upvotedUsers.length : 0
+      upvoteCount: this.props.upvotedUsers != null ? this.props.upvotedUsers.length : 0
     };
     this.upvoteClick = this.upvoteClick.bind(this);
   }
@@ -18,7 +17,7 @@ export class Comment extends React.PureComponent {
     return (
       <div className="comment-container">
         <hr className="comment-split" />
-        <Link to={`/profile/${this.props.username}`}>
+        <Link style={{ gridColumn: 1, gridRow: "1/5" }} to={`/profile/${this.props.username}`}>
           <img className="comment-profile-pic" src={this.props.profilepic} />
         </Link>
         <div className="comment-body-container">
@@ -32,11 +31,7 @@ export class Comment extends React.PureComponent {
           <img
             onClick={this.upvoteClick}
             className="comment-upvote"
-            src={
-              this.state.isUpvoted
-                ? "/Assets/upvote-filled.svg"
-                : "/Assets/upvote.svg"
-            }
+            src={this.state.isUpvoted ? "/Assets/upvote-filled.svg" : "/Assets/upvote.svg"}
           />
           <p className="comment-upvote-count">{this.state.upvoteCount}</p>
         </div>
@@ -71,9 +66,7 @@ export class Comment extends React.PureComponent {
       );
     }
     this.setState(prevState => ({
-      upvoteCount: prevState.isUpvoted
-        ? prevState.upvoteCount - 1
-        : prevState.upvoteCount + 1,
+      upvoteCount: prevState.isUpvoted ? prevState.upvoteCount - 1 : prevState.upvoteCount + 1,
       isUpvoted: !prevState.isUpvoted
     }));
   }

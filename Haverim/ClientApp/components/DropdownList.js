@@ -21,10 +21,7 @@ export class DropdownList extends React.Component {
   render() {
     return (
       <div className="drop-down-list-background">
-        <div
-          onClick={this.closeDropDown}
-          className="drop-down-list-background"
-        />
+        <div onClick={this.closeDropDown} className="drop-down-list-background" />
         <ul ref={this.listRef} className="drop-down-list Scrollbar">
           {
             (!this.state.loaded ? (
@@ -91,6 +88,9 @@ export class DropdownList extends React.Component {
         index: this.state.notificationList.length
       }),
       function(result) {
+        if (result[0] === '"') {
+          result = result.substring(1, result.length - 1);
+        }
         if (result.split(":")[0] == "error") {
           this.finishLoading();
           return;

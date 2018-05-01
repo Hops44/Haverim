@@ -9,6 +9,11 @@ using Haverim.Models;
 using Newtonsoft.Json;
 using Haverim.Controllers.Helpers;
 using System.Threading;
+using System.IO;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using System.Net;
+using RestSharp;
 
 namespace Haverim.Controllers
 {
@@ -37,16 +42,35 @@ namespace Haverim.Controllers
             if (this._context.Users.SingleOrDefault(_ => _.Email == user.Email) != null)
                 return "error:3";
 
-            if (String.IsNullOrWhiteSpace(user.ProfilePic))
-                user.ProfilePic = GlobalVariables.DefaultProfilePic;
+            if (String.IsNullOrWhiteSpace(user.ProfilePicBase64))
+                user.ProfilePicBase64 = GlobalVariables.DefaultProfilePic;
 
-            if (String.IsNullOrWhiteSpace(user.ProfilePagePictue))
-                user.ProfilePagePictue = null;
+            string ImageUrl;
+            if (String.IsNullOrWhiteSpace(user.ProfilePicBase64))
+            {
+                var RestClient = new RestClient(GlobalVariables.ImageApiBaseUrl);
+                var RestRequest = new RestRequest("/api/Image", Method.POST);
+                RestRequest.AddJsonBody(user.ProfilePicBase64);
+
+                IRestResponse response = RestClient.Execute(RestRequest);
+                ImageUrl = response.Content;
+                try
+                {
+                    ImageUrl = ImageUrl.Substring(1, ImageUrl.Length - 2);
+                }
+                catch { }
+            }
+            else
+            {
+                ImageUrl = "default";
+            }
 
 
+
+            user.Username = user.Username.ToLower();
             this._context.Users.Add(new Models.User
             {
-                Username = user.Username.ToLower(),
+                Username = user.Username,
                 DisplayName = user.DisplayName,
                 Password = user.Password,
                 Email = user.Email,
@@ -57,8 +81,7 @@ namespace Haverim.Controllers
                 IsMale = user.IsMale,
                 Followers = new List<string>(),
                 PostFeed = new List<string>(),
-                ProfilePic = user.ProfilePic,
-                ProfilePagePicture = user.ProfilePagePictue
+                ProfilePic = ImageUrl,
             });
             this._context.SaveChanges();
 
@@ -230,9 +253,20 @@ namespace Haverim.Controllers
             if (String.IsNullOrWhiteSpace(username))
                 return Json("error:5");
             var RequestedUser = this._context.Users.Find(username);
-            var users = this._context.Users;
             if (RequestedUser == null)
                 return Json("error:0");
+            if (!String.IsNullOrWhiteSpace(RequestedUser.ProfilePic ))
+            {
+                RequestedUser.ProfilePic = GlobalVariables.ImageApiGetUrl + RequestedUser.ProfilePic;
+            }
+            else
+            {
+                RequestedUser.ProfilePic = GlobalVariables.ImageApiGetUrl + "default";
+            }
+            if (RequestedUser.ProfilePagePicture != null)
+            {
+                RequestedUser.ProfilePagePicture = GlobalVariables.ImageApiGetUrl + RequestedUser.ProfilePagePicture;
+            }
 
             return Json(RequestedUser);
             //TODO: [Future Feature] when token is passes return all information, when not return basic information
@@ -293,11 +327,16 @@ namespace Haverim.Controllers
             else
             {
                 var User = this._context.Users.Find(payload.Username);
-
                 if (User == null)
                 {
                     return Json("error:0");
                 }
+                if (string.IsNullOrWhiteSpace(User.ProfilePic))
+                {
+                    User.ProfilePic = "default";
+                }
+                User.ProfilePic = GlobalVariables.ImageApiGetUrl + User.ProfilePic;
+                User.ProfilePagePicture = GlobalVariables.ImageApiGetUrl + User.ProfilePagePicture;
                 return Json(new ApiClasses.CurrentUserData(User));
             }
 
@@ -312,7 +351,7 @@ namespace Haverim.Controllers
             {
                 if (user.DisplayName.ToUpperInvariant().Contains(q) || user.Username.ToUpperInvariant().Contains(q))
                 {
-                    MatchedUsers.Add(new ApiClasses.BasicUserData { Username = user.Username, DisplayName = user.DisplayName, ProfilePic = user.ProfilePic });
+                    MatchedUsers.Add(new ApiClasses.BasicUserData { Username = user.Username, DisplayName = user.DisplayName, ProfilePic = GlobalVariables.ImageApiGetUrl + user.ProfilePic });
                 }
                 if (MatchedUsers.Count == 10)
                 {
@@ -320,6 +359,55 @@ namespace Haverim.Controllers
                 }
             }
             return Json(MatchedUsers);
+        }
+
+        [HttpPost("[Action]")]
+        public string UploadImage([FromBody] string Base64Data)
+        {
+            if (string.IsNullOrWhiteSpace(Base64Data))
+            {
+                return "error:5";
+            }
+            var RestClient = new RestClient(GlobalVariables.ImageApiBaseUrl);
+            var RestRequest = new RestRequest("/api/Image", Method.POST);
+            RestRequest.AddJsonBody(Base64Data);
+
+            IRestResponse response = RestClient.Execute(RestRequest);
+            string ImageUrl = response.Content;
+            try
+            {
+                ImageUrl = ImageUrl.Substring(1, ImageUrl.Length - 2);
+            }
+            catch { }
+            return ImageUrl;
+        }
+
+        [HttpPost("[Action]")]
+        public string ChangeUserPictrue([FromBody] ApiClasses.PictureUpadteRequest request)
+        {
+            if (String.IsNullOrWhiteSpace(request.Token) || string.IsNullOrWhiteSpace(request.ImageBase64Data))
+                return "error:5";
+            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) = Helpers.JWT.VerifyToken(request.Token);
+
+            if (Status != Helpers.JWT.TokenStatus.Valid)
+                return "error:6";
+
+            var User = this._context.Users.Find(Payload.Username);
+            if (User == null)
+                return "error:0";
+
+            string ImageId = UploadImage(request.ImageBase64Data);
+            switch (request.Type)
+            {
+                case ApiClasses.PictureUpadteRequest.ImageType.ProfilePicture:
+                    User.ProfilePic = ImageId;
+                    break;
+                case ApiClasses.PictureUpadteRequest.ImageType.ProfilePagePicture:
+                    User.ProfilePagePicture = ImageId;
+                    break;
+            }
+            this._context.SaveChanges();
+            return "success";
         }
     }
 }

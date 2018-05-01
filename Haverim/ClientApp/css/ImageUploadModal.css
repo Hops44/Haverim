@@ -1,0 +1,103 @@
+.image-upload-modal-background {
+  background-color: rgba(15, 15, 15, 0.37);
+  position: fixed;
+  height: 100vh;
+  width: 100vw;
+  z-index: 99;
+  cursor: pointer;
+}
+.image-upload-modal-body {
+  position: fixed;
+  z-index: 100;
+  height: 80vh;
+  width: 80vw;
+  top: 10vh;
+  left: 10vw;
+  border-radius: 10px;
+  border: 2px solid #f29949;
+  background-color: white;
+  overflow: hidden;
+}
+.image-upload-modal-picture-upload {
+  background-color: #f2994a;
+  width: 100%;
+  height: 100%;
+  margin: 0 auto;
+  cursor: pointer;
+  transition: opacity 300ms;
+}
+.image-upload-modal-picture-upload:hover {
+  opacity: 0.6;
+}
+.image-upload-modal-picture-upload-center {
+  display: inline-block;
+  margin-left: calc(50% - 103px);
+  margin-top: calc(40vh - 103px);
+}
+.image-upload-modal-picture-upload-icon {
+  height: 120px;
+  width: 120px;
+  margin-left: calc(50% - 60px);
+  margin-top: 17.5%;
+}
+.image-upload-modal-picture-upload-text {
+  margin-top: 10px;
+  text-align: center;
+  font-size: 30px;
+  color: white;
+  font-family: "Quicksand";
+}
+.image-upload-modal-image-cropper-container {
+  width: 100%;
+  margin: 0 auto;
+  max-height: 500px;
+  max-width: 100%;
+}
+.image-upload-modal-container {
+  margin-top: 1vh;
+}
+.image-upload-modal-container .image-cropper-image {
+  object-fit: contain;
+  margin: auto;
+  max-width: 70vw;
+  height: 70vh;
+  width: 40vw;
+  margin-left: 7vw;
+}
+/* .image-upload-modal-container-profile .image-cropper-image {
+  margin-left: 7vw;
+} */
+.image-upload-modal-container .register-page-picture-upload-container {
+  width: 100%;
+  overflow: hidden;
+}
+.image-upload-modal-container .image-cropper-container {
+  max-height: 70vh;
+  height: 100vh;
+  width: 74vw;
+  border-radius: 5px;
+  transform: translateZ(0);
+  -webkit-transform: translateZ(0);
+}
+
+.image-upload-modal-container .image-cropper-container::-webkit-scrollbar {
+  width: 10px;
+  height: 8px;
+}
+.image-upload-modal-container .image-cropper-container::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+.image-upload-modal-container .image-cropper-container::-webkit-scrollbar-thumb {
+  background: #f2984a52;
+  cursor: pointer;
+}
+
+.image-upload-modal-container .cropper-wrap-box {
+  max-height: 70vh;
+}
+.image-upload-modal-container .register-page-picture-upload {
+  width: 100%;
+}
+.image-upload-modal-container .register-page-picture-upload-center {
+  transform: translateY(20px);
+}

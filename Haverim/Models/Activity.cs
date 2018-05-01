@@ -15,5 +15,6 @@ namespace Haverim.Models
         public int Id { get; set; }
         public Guid PostId { get; set; }
         public ActivityType Type { get; set; }
+        public int Date { get; set; }
     }
 }

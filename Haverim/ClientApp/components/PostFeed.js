@@ -3,7 +3,7 @@ import Post from "./Post";
 import { FieldInput } from "./FieldInput";
 import "../css/PostFeed.css";
 import { POST, GET, POSTAsync } from "../RestMethods";
-import { getUser, getUserFeed } from "../GlobalRequests";
+import { getUser, getUserFeed, getUserActivityFeed } from "../GlobalRequests";
 
 export class PostFeed extends React.Component {
   constructor(props) {
@@ -20,34 +20,26 @@ export class PostFeed extends React.Component {
     this.requestPostsFromServer = this.requestPostsFromServer.bind(this);
     this.onScrollHandler = this.onScrollHandler.bind(this);
     this.interval = setInterval(this.onScrollHandler, 1);
-    /*
-        1. Start animation with a timer
-        2. fetch feed from server
-        3. if feed fetch takes more than 20 seconds stop animation and display an error message
-        4. if the fetch action return in less than 20 seconds , stop the animation and display posts
-        */
   }
 
   onScrollHandler() {
-    if (this.props.scrollRef != null && this.props.scrollRef.current != null) {
-      this.props.scrollRef.current.onscroll = function(e) {
-        if (!this.state.loadingMore && this.state.canLoadMore) {
-          var windowHeight = window.innerHeight - 47.5;
-          var docHeight = e.target.scrollHeight;
-          var scrollTop = e.target.scrollTop;
+    this.props.scrollRef.current.onscroll = function(e) {
+      if (!this.state.loadingMore && this.state.canLoadMore) {
+        var windowHeight = window.innerHeight - 47.5;
+        var docHeight = e.target.scrollHeight;
+        var scrollTop = e.target.scrollTop;
 
-          var trackLength = docHeight - windowHeight;
-          var scrollPercentage = scrollTop / trackLength;
+        var trackLength = docHeight - windowHeight;
+        var scrollPercentage = scrollTop / trackLength;
 
-          if (scrollPercentage > 0.99) {
-            this.setState({
-              loadingMore: true
-            });
-          }
+        if (scrollPercentage > 0.95) {
+          this.setState({
+            loadingMore: true
+          });
         }
-      }.bind(this);
-      clearInterval(this.interval);
-    }
+      }
+    }.bind(this);
+    clearInterval(this.interval);
   }
 
   componentDidUpdate() {
@@ -57,25 +49,34 @@ export class PostFeed extends React.Component {
   }
 
   requestPostsFromServer() {
-    getUserFeed(
-      sessionStorage.getItem("jwtkey"),
-      this.state.postList.length,
-      this
-    );
-
+    if (this.props.activityFeed === true) {
+      getUserActivityFeed(
+        this.props.targetUser.username,
+        sessionStorage.getItem("jwtkey"),
+        this.state.postList.length,
+        this
+      );
+    } else {
+      getUserFeed(sessionStorage.getItem("jwtkey"), this.state.postList.length, this);
+    }
     //this.setState({ postList: posts, finishedLoading: true });
   }
 
   addPostToFeed(profilepic, displayName, username, body, time, key) {
+    console.log(key);
     const postToAdd = (
       <Post
+        scrollRef={this.props.scrollRef}
         profilepic={profilepic}
         displayName={displayName}
         username={username}
         body={body}
         unixTime={time}
-        key={key}
+        postId={key}
         upvoteCount={0}
+        comments={[]}
+        currentUserProfilepic={this.props.currentUser.profilePic}
+        currentUsername={this.props.currentUser.username}
       />
     );
     this.setState(prevState => ({
@@ -108,6 +109,7 @@ export class PostFeed extends React.Component {
       );
     }
   }
+
   formatMonth(monthNum) {
     var monthNames = [
       "January",

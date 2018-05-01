@@ -90,7 +90,8 @@ namespace Haverim.Controllers
             ActivityFeed.Insert(0, new Activity
             {
                 PostId = PostId,
-                Type = ActivityType.Post
+                Type = ActivityType.Post,
+                Date = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds
             });
             Publisher.ActivityFeed = ActivityFeed;
 
@@ -170,6 +171,51 @@ namespace Haverim.Controllers
         }
 
         [HttpPost("[Action]")]
+        public JsonResult GetUserActivityFeed([FromBody] ApiClasses.ActivityFeedRequest request)
+        {
+            if (String.IsNullOrWhiteSpace(request.Token))
+                return Json("error:5");
+            (Helpers.JWT.TokenStatus Status, ApiClasses.Payload Payload) = Helpers.JWT.VerifyToken(request.Token);
+
+            if (Status != Helpers.JWT.TokenStatus.Valid)
+                return Json("error:6");
+            var User = this._context.Users.Find(request.TargetUser);
+            if (User == null)
+                return Json("error:0");
+
+            List<Activity> UserActivityFeed = User.ActivityFeed;
+            if (UserActivityFeed == null)
+            {
+                return Json("error:7");
+            }
+            int FeedCount = UserActivityFeed.Count;
+            if (request.index >= FeedCount)
+                return Json("error:7");
+
+            List<ApiClasses.ActivityFeedItem> RequestedFeed = new List<ApiClasses.ActivityFeedItem>();
+
+            if (request.index + 10 >= FeedCount)
+            {
+                for (int i = request.index; i < UserActivityFeed.Count; i++)
+                {
+                    Activity CurrentActivity = UserActivityFeed[i];
+                    Post CurrentPost = this._context.Posts.Find(CurrentActivity.PostId);
+                    RequestedFeed.Add(new ApiClasses.ActivityFeedItem(CurrentPost, CurrentActivity));
+                }
+            }
+            else
+            {
+                for (int i = request.index; i < request.index + 10; i++)
+                {
+                    Activity CurrentActivity = UserActivityFeed[i];
+                    Post CurrentPost = this._context.Posts.Find(CurrentActivity.PostId);
+                    RequestedFeed.Add(new ApiClasses.ActivityFeedItem(CurrentPost, CurrentActivity));
+                }
+            }
+            return Json(RequestedFeed);
+        }
+
+        [HttpPost("[Action]")]
         public string ReplyToPost([FromBody] ApiClasses.CreateReply reply)
         {
             if (String.IsNullOrWhiteSpace(reply.Token))
@@ -234,7 +280,8 @@ namespace Haverim.Controllers
             ReplyingUserActivityFeed.Insert(0, new Activity
             {
                 PostId = Post.Id,
-                Type = ActivityType.Reply
+                Type = ActivityType.Reply,
+                Date = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds
             });
             ReplyingUser.ActivityFeed = ReplyingUserActivityFeed;
 
@@ -267,15 +314,19 @@ namespace Haverim.Controllers
             List<string> UpvotedUsers = Post.UpvotedUsers;
             UpvotedUsers.Add(PostUpvoter.Username);
             Post.UpvotedUsers = UpvotedUsers;
-            if (PostUpvoter.ActivityFeed == null)
+
+            var PostPublisherActivityFeed = PostUpvoter.ActivityFeed;
+            if (PostPublisherActivityFeed == null)
             {
-                PostUpvoter.ActivityFeed = new List<Activity>();
+                PostPublisherActivityFeed = new List<Activity>();
             }
-            PostUpvoter.ActivityFeed.Insert(0, new Activity
+            PostPublisherActivityFeed.Insert(0, new Activity
             {
                 PostId = Post.Id,
-                Type = ActivityType.Upvote
+                Type = ActivityType.Upvote,
+                Date = (Int32)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds
             });
+            PostUpvoter.ActivityFeed = PostPublisherActivityFeed;
 
             var PostPublisher = this._context.Users.Find(Post.PublisherId);
             if (PostPublisher.Username != Payload.Username)

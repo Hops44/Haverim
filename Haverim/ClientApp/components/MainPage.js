@@ -6,10 +6,17 @@ import { FriendsList } from "./FriendsList";
 import { FriendListItem } from "./FriendsList";
 import "../css/MainPage.css";
 import { POST, GET } from "../RestMethods";
-import { Redirect, Route, Link } from "react-router-dom";
+import { Redirect, Route, Link, withRouter } from "react-router-dom";
 
 export function checkIfLogged() {
-  var sessionStorage = window.sessionStorage;
+  let localStorageKey = localStorage.getItem("jwtkey");
+  let sessionStorageKey = sessionStorage.getItem("jwtkey");
+  if (
+    (sessionStorageKey == undefined || sessionStorageKey == "null") &&
+    localStorageKey !== undefined
+  ) {
+    sessionStorage.setItem("jwtkey", localStorageKey);
+  }
   var JWTkey = sessionStorage.getItem("jwtkey");
 
   var payload = `{"key":"${JWTkey}"}`;
@@ -27,14 +34,12 @@ export function checkIfLogged() {
   }
 }
 
-export class MainPage extends React.Component {
+class MainPage extends React.Component {
   constructor(props) {
     super(props);
     var isLoggedIn = checkIfLogged();
     var width =
-      window.innerWidth ||
-      document.documentElement.clientWidth ||
-      document.body.clientWidth;
+      window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
 
     this.state = {
       screenWidth: width,
@@ -59,9 +64,7 @@ export class MainPage extends React.Component {
 
   getScreenWidth() {
     var width =
-      window.innerWidth ||
-      document.documentElement.clientWidth ||
-      document.body.clientWidth;
+      window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
     this.setState({ screenWidth: width });
   }
   render() {
@@ -91,16 +94,9 @@ export class MainPage extends React.Component {
             </div>
           )}
           <div
-            className={
-              this.state.screenWidth > this.switchValue
-                ? "main-page-input-posts"
-                : "full"
-            }
+            className={this.state.screenWidth > this.switchValue ? "main-page-input-posts" : "full"}
           >
-            <PostFeed
-              scrollRef={this.scrollRef}
-              currentUser={this.state.currentUser}
-            />
+            <PostFeed scrollRef={this.scrollRef} currentUser={this.state.currentUser} />
           </div>
           {this.state.screenWidth > this.switchValue && (
             <div className="main-page-friends-list">
@@ -120,3 +116,5 @@ export class MainPage extends React.Component {
     );
   }
 }
+
+export default MainPage;

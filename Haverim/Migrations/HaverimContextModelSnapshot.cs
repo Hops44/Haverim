@@ -20,24 +20,6 @@ namespace Haverim.Migrations
                 .HasAnnotation("ProductVersion", "2.0.1-rtm-125")
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("Haverim.Models.Activity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<Guid>("PostId");
-
-                    b.Property<int>("Type");
-
-                    b.Property<string>("Username");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Username");
-
-                    b.ToTable("Activity");
-                });
-
             modelBuilder.Entity("Haverim.Models.Post", b =>
                 {
                     b.Property<Guid>("Id");
@@ -79,6 +61,8 @@ namespace Haverim.Migrations
 
                     b.Property<string>("ProfilePic");
 
+                    b.Property<string>("_activityFeed");
+
                     b.Property<string>("_followers");
 
                     b.Property<string>("_following");
@@ -90,13 +74,6 @@ namespace Haverim.Migrations
                     b.HasKey("Username");
 
                     b.ToTable("Users");
-                });
-
-            modelBuilder.Entity("Haverim.Models.Activity", b =>
-                {
-                    b.HasOne("Haverim.Models.User")
-                        .WithMany("ActivityFeed")
-                        .HasForeignKey("Username");
                 });
 #pragma warning restore 612, 618
         }

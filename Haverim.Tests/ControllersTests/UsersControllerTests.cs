@@ -52,7 +52,7 @@ namespace Haverim.Tests
                     BirthDateUnix = (int)(new DateTime(2000, 5, 29).Subtract(new DateTime(1970, 1, 1))).TotalSeconds,
                     Country = "Israel",
                     IsMale = true,
-                    ProfilePic = "FCA8DCC2-1B1D-4CC3-82BE-B06B9444328D"
+                    ProfilePicBase64 = "FCA8DCC2-1B1D-4CC3-82BE-B06B9444328D"
                 });
 
                 var User = db.Users.Find("test user");
@@ -78,7 +78,7 @@ namespace Haverim.Tests
                     BirthDateUnix = 959558400,
                     Country = "Israel",
                     IsMale = true,
-                    ProfilePic = "FCA8DCC2-1B1D-4CC3-82BE-B06B9444328D"
+                    ProfilePicBase64 = "FCA8DCC2-1B1D-4CC3-82BE-B06B9444328D"
                 };
 
                 RegisterResult = UController.RegisterUser(RegisterUserObject);
@@ -160,7 +160,7 @@ namespace Haverim.Tests
                     IsMale = true,
                     BirthDateUnix = (int)new DateTimeOffset(new DateTime(1985, 1, 1)).ToUnixTimeSeconds(),
                     Country = "United States",
-                    ProfilePic = "SomeUrl"
+                    ProfilePicBase64 = "SomeUrl"
                 });
                 string FollowerUserToken = UController.RegisterUser(new Controllers.Helpers.ApiClasses.RegisterUser
                 {
@@ -171,7 +171,7 @@ namespace Haverim.Tests
                     IsMale = true,
                     BirthDateUnix = (int)new DateTimeOffset(new DateTime(1985, 1, 1)).ToUnixTimeSeconds(),
                     Country = "United States",
-                    ProfilePic = "SomeUrl"
+                    ProfilePicBase64 = "SomeUrl"
                 });
 
                 Assert.AreEqual(MainUserToken.Split(':')[0], "success");
@@ -248,7 +248,7 @@ namespace Haverim.Tests
                     IsMale = true,
                     BirthDateUnix = (int)new DateTimeOffset(new DateTime(1985, 1, 1)).ToUnixTimeSeconds(),
                     Country = "United States",
-                    ProfilePic = "SomeUrl"
+                    ProfilePicBase64 = "SomeUrl"
                 });
                 string FollowerUserToken = UController.RegisterUser(new Controllers.Helpers.ApiClasses.RegisterUser
                 {
@@ -259,7 +259,7 @@ namespace Haverim.Tests
                     IsMale = true,
                     BirthDateUnix = (int)new DateTimeOffset(new DateTime(1985, 1, 1)).ToUnixTimeSeconds(),
                     Country = "United States",
-                    ProfilePic = "SomeUrl"
+                    ProfilePicBase64 = "SomeUrl"
                 });
 
                 Assert.AreEqual(MainUserToken.Split(':')[0], "success");
@@ -338,7 +338,7 @@ namespace Haverim.Tests
                     IsMale = true,
                     BirthDateUnix = (int)new DateTimeOffset(new DateTime(1985, 1, 1)).ToUnixTimeSeconds(),
                     Country = "United States",
-                    ProfilePic = "SomeUrl"
+                    ProfilePicBase64 = "SomeUrl"
                 };
 
                 string UserToken = UController.RegisterUser(RegisterUser).Split(':')[1];
@@ -441,7 +441,7 @@ namespace Haverim.Tests
                     IsMale = true,
                     BirthDateUnix = (int)(new DateTime(1985, 1, 1).Subtract(new DateTime(1970, 1, 1))).TotalSeconds,
                     Country = "United States",
-                    ProfilePic = "SomeUrl"
+                    ProfilePicBase64 = "SomeUrl"
                 });
                 Console.WriteLine(UController);
                 UController.GetUser("test user");
@@ -480,7 +480,7 @@ namespace Haverim.Tests
                     IsMale = true,
                     BirthDateUnix = (int)new DateTimeOffset(new DateTime(1985, 1, 1)).ToUnixTimeSeconds(),
                     Country = "United States",
-                    ProfilePic = "SomeUrl"
+                    ProfilePicBase64 = "SomeUrl"
                 });
 
                 var User = db.Users.Find("test user");
@@ -513,6 +513,33 @@ namespace Haverim.Tests
                 Assert.AreEqual("\"error:5\"", GetResult);
                 GetResult = JsonConvert.SerializeObject(UController.GetUserFollowers("None Existing", false).Value);
                 Assert.AreEqual("\"error:0\"", GetResult);
+            }
+        }
+
+        [TestMethod]
+        public void BirthdayTest()
+        {
+            using (var db = new HaverimContext(Global.ContextOptions))
+            {
+                Global.ResetDatabase(db);
+
+                var UController = new UsersController(db);
+                string MainUserToken = UController.RegisterUser(new Controllers.Helpers.ApiClasses.RegisterUser
+                {
+                    Username = "test user",
+                    DisplayName = "Some User",
+                    Email = "example@mail.com",
+                    Password = "123456",
+                    IsMale = true,
+                    BirthDateUnix = 959558400,
+                    Country = "United States",
+                    ProfilePicBase64 = "SomeUrl"
+                }).Split(':')[1];
+
+                Assert.AreEqual(5, db.Users.Find("test user").BirthDate.Month);
+                Assert.AreEqual(2000, db.Users.Find("test user").BirthDate.Year);
+                Assert.AreEqual(29, db.Users.Find("test user").BirthDate.Day);
+
             }
         }
     }
