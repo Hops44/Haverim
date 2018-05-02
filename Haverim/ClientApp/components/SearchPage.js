@@ -30,10 +30,12 @@ class SearchPage extends React.Component {
   }
 
   searchUser() {
-    GETAsync("/api/Users/SearchUser/" + this.searchInputRef.current.value, result => {
-      let searchResult = JSON.parse(result);
-      this.setState({ results: searchResult });
-    });
+    if (this.searchInputRef.current.value) {
+      GETAsync("/api/Users/SearchUser/" + this.searchInputRef.current.value, result => {
+        let searchResult = JSON.parse(result);
+        this.setState({ results: searchResult });
+      });
+    }
   }
 
   render() {

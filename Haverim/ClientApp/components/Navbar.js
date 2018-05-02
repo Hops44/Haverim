@@ -35,8 +35,6 @@ class NavBar extends React.PureComponent {
               <Link ref={this.redirectRef} id="Nahum" to={"/search/" + this.state.searchValue} />
             );
           }.bind(this)()}
-        {/* {this.state.redirect && <Redirect to={"/search/" + this.state.searchValue} />} */}
-        {/* <div id="centerrr" /> */}
         <img
           onClick={this.notificationIconClicked.bind(this)}
           className="notification-img"
@@ -49,7 +47,7 @@ class NavBar extends React.PureComponent {
           onClick={() =>
             this.state.searchInputOpen === false
               ? window.innerWidth < 950
-                ? this.setState({ searchInputOpen: "redirect" })
+                ? this.setState({ redirect: true })
                 : function() {
                     this.searchInputRef.current.focus();
                     return this.setState({ searchInputOpen: true });
