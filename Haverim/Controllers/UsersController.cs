@@ -309,7 +309,7 @@ namespace Haverim.Controllers
                 {
                     DisplayName = CurrentUser.DisplayName,
                     Username = CurrentUser.Username,
-                    ProfilePic = CurrentUser.ProfilePic,
+                    ProfilePic = GlobalVariables.ImageApiGetUrl + CurrentUser.ProfilePic,
                 });
             }
 

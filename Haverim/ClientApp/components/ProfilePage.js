@@ -131,7 +131,9 @@ class ProfilePage extends React.Component {
               "=" ? (
               <div className={"user-profile-no-picture-container"}>
                 <div
-                  onClick={this.editable ? () => this.setState({ modalOpen: 1 }) : null}
+                  onClick={() => {
+                    if (this.editable) this.setState({ modalOpen: 1 });
+                  }}
                   className={
                     this.editable ? "user-profile-no-picture editable" : "user-profile-no-picture"
                   }
@@ -139,7 +141,7 @@ class ProfilePage extends React.Component {
               </div>
             ) : (
               <div
-                onClick={() => this.setState({ modalOpen: 1 })}
+                onClick={() => this.editable && this.setState({ modalOpen: 1 })}
                 className={
                   this.editable
                     ? "user-profile-no-picture-container editable"
@@ -157,7 +159,7 @@ class ProfilePage extends React.Component {
             <div className={"user-profile-main-info"}>
               <p className={"user-profile-displayname"}>{this.targetUser.displayName}</p>
               <img
-                onClick={() => this.setState({ modalOpen: 0 })}
+                onClick={() => this.editable && this.setState({ modalOpen: 0 })}
                 draggable={false}
                 className={
                   this.editable

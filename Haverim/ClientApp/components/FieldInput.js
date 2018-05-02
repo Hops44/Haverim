@@ -145,7 +145,7 @@ function getTags(text) {
   var tags = [];
   for (const word of split) {
     if (word[0] == "#") {
-      tags.push(word);
+      tags.push(word.substring(1));
     }
   }
   return tags;

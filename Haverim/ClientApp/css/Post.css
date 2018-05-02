@@ -16,7 +16,7 @@
   padding-left: 0;
 }
 .post-other-user-info {
-  width: 80%;
+  width: 90%;
   margin: auto;
   background-color: rgb(255, 255, 255);
   padding-left: 5px;
@@ -96,8 +96,7 @@
   float: right;
   cursor: pointer;
   opacity: 0.6;
-  transition: opacity 0.2s, width 0.2s, height 0.2s, margin-left 0.2s,
-    margin-top 0.2s;
+  transition: opacity 0.2s, width 0.2s, height 0.2s, margin-left 0.2s, margin-top 0.2s;
   margin-top: 0px;
   margin-left: 20px;
   z-index: -1;

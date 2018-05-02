@@ -24,6 +24,10 @@ class Post extends React.PureComponent {
     this.generateText = this.generateText.bind(this);
     this.incrementCommentCount = this.incrementCommentCount.bind(this);
     this.getModal = this.getModal.bind(this);
+    this.targetUserProfilePageUrl =
+      this.props.username == this.props.currentUsername
+        ? "/profile"
+        : `/profile/${this.props.username}`;
   }
 
   incrementCommentCount() {
@@ -185,11 +189,11 @@ class Post extends React.PureComponent {
         )}
         <div className="post-container">
           <div className="post-user-container noselect">
-            <Link className="Link" to={`/profile/${this.props.username}`}>
+            <Link className="Link" to={this.targetUserProfilePageUrl}>
               <img className="post-profile-pic ProfilePicture" src={this.props.profilepic} />
             </Link>
             <div className="post-user-text-container">
-              <Link className="Link" to={`/profile/${this.props.username}`}>
+              <Link className="Link" to={this.targetUserProfilePageUrl}>
                 <p className="post-displayname">{this.props.displayName}</p>
                 <p className="post-username">{this.props.username}</p>
               </Link>

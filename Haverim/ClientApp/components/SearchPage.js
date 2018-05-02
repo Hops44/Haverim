@@ -57,6 +57,7 @@ class SearchPage extends React.Component {
             {this.state.results &&
               this.state.results.map(item => (
                 <SearchResultItem
+                  profilePic={item.profilePic}
                   key={item.username}
                   displayName={item.displayName}
                   username={item.username}
@@ -80,10 +81,7 @@ class SearchResultItem extends React.PureComponent {
           to={"/profile/" + this.props.username}
         >
           <div className="search-result-item-container noselect">
-            <img
-              className="search-result-item-image"
-              src="https://www.w3schools.com/howto/img_fjords.jpg"
-            />
+            <img className="search-result-item-image" src={this.props.profilePic} />
             <p className="search-result-item-displayname">{this.props.displayName}</p>
             <p className="search-result-item-username">{this.props.username}</p>
           </div>

@@ -4,7 +4,7 @@ import * as Cropper from "cropperjs";
 import "../../node_modules/cropperjs/dist/cropper.min.css";
 import "../css/RegisterPage.css";
 import Countries from "../_contriesList";
-import { POSTAsync, POST } from "../RestMethods";
+import { POSTAsync, POST, GETAsync } from "../RestMethods";
 import { TypeFormatFlags } from "typescript";
 import { Redirect } from "react-router";
 
@@ -46,7 +46,7 @@ export default class RegisterPage extends React.Component {
         BirthDateUnix: parseInt(this.state.selectedDate.getTime() / 1000),
         Country: this.state.selectedCountry,
         IsMale: this.state.selectedGender === "Male",
-        ProfilePicBase64: this.state.profileImage
+        ProfilePicBase64: this.state.profileImage ? this.state.profileImage : ""
       });
       this.setState({ waitingForServer: true });
       POSTAsync(
@@ -56,8 +56,22 @@ export default class RegisterPage extends React.Component {
           result = result.substring(1, result.length - 1);
           let split = result.split(":");
           if (split[0] == "success") {
-            localStorage.setItem("jwtkey", split[1]);
-            this.setState({ redirect: true });
+            this.interval = setInterval(
+              function() {
+                GETAsync(
+                  "/api/Users/IsUsernameTaken/" + this.state.inputUsername,
+                  function(result) {
+                    console.log(result);
+                    if (result == "true") {
+                      localStorage.setItem("jwtkey", split[1]);
+                      this.setState({ redirect: true });
+                      clearInterval(this.interval);
+                    }
+                  }.bind(this)
+                );
+              }.bind(this),
+              500
+            );
           } else {
             this.setState({ waitingForServer: false });
             console.log(result);

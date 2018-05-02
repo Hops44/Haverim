@@ -117,9 +117,9 @@ export class FollowersModal extends React.Component {
     });
 
     var result = GETAsync(
-      `/api/users/GetUserFollowers/${this.props.username}/${
-        this.props.isFollowers
-      }/false/${this.state.index}`,
+      `/api/users/GetUserFollowers/${this.props.username}/${this.props.isFollowers}/false/${
+        this.state.index
+      }`,
       function(result) {
         var users = JSON.parse(result);
         this.setState(prevState => ({
@@ -138,10 +138,7 @@ export class FollowersModal extends React.Component {
   render() {
     return (
       <div>
-        <div
-          onClick={this.props.close}
-          className="followers-modal-background"
-        />
+        <div onClick={this.props.close} className="followers-modal-background" />
         <div className="followers-modal-body Scrollbar">
           <h2 className="followers-modal-header">
             {this.props.followers ? "Followers" : "Following"}
@@ -156,9 +153,7 @@ export class FollowersModal extends React.Component {
                 displayName={user.displayName}
               />
             ))}
-            {this.state.isLoading && (
-              <p className="followers-modal-loading-header">Loading</p>
-            )}
+            {this.state.isLoading && <p className="followers-modal-loading-header">Loading</p>}
             {this.state.canLoadMore &&
               !this.state.isLoading && (
                 <button
@@ -188,17 +183,10 @@ class FollowersModalListItem extends React.PureComponent {
         className="followers-modal-list-item"
         style={{ textDecoration: "none" }}
       >
-        <img
-          className="followers-modal-list-item-profilepic ProfilePicture"
-          src={this.props.pic}
-        />
+        <img className="followers-modal-list-item-profilepic ProfilePicture" src={this.props.pic} />
         <div className="followers-modal-list-item-user-container">
-          <p className="followers-modal-list-item-displayname Link">
-            {this.props.displayName}
-          </p>
-          <p className="followers-modal-list-item-username Link">
-            {this.props.username}
-          </p>
+          <p className="followers-modal-list-item-displayname Link">{this.props.displayName}</p>
+          <p className="followers-modal-list-item-username Link">{this.props.username}</p>
         </div>
       </Link>
     );

@@ -36,7 +36,7 @@ class NavBar extends React.PureComponent {
             );
           }.bind(this)()}
         {/* {this.state.redirect && <Redirect to={"/search/" + this.state.searchValue} />} */}
-        <div id="centerrr" />
+        {/* <div id="centerrr" /> */}
         <img
           onClick={this.notificationIconClicked.bind(this)}
           className="notification-img"
